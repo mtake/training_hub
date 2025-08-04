@@ -37,8 +37,31 @@ result = sft(
 ```
 
 ## Installation
+
+### Basic Installation
 ```bash
+pip install training-hub
+```
+
+### Development Installation
+```bash
+git clone https://github.com/Red-Hat-AI-Innovation-Team/training_hub
+cd training_hub
 pip install -e .
+```
+
+### CUDA Support
+For GPU training with CUDA support:
+```bash
+pip install training-hub[cuda]
+# or for development
+pip install -e .[cuda]
+```
+
+**Note:** If you encounter build issues with flash-attn, install torch first:
+```bash
+pip install torch
+pip install training-hub[cuda]
 ```
 
 ## Getting Started

@@ -88,11 +88,11 @@ class SFTAlgorithm(Algorithm):
             effective_batch_size: Effective batch size for training
             learning_rate: Learning rate for training
             max_seq_len: Maximum sequence length
-            max_batch_len: Maximum batch length
+            max_batch_len: Maximum tokens per GPU (hard memory cap)
             data_output_dir: Directory to save processed data
-            save_samples: Number of samples to save
+            save_samples: Number of samples to save after training (0 disables saving based on sample count)
             warmup_steps: Number of warmup steps
-            accelerate_full_state_at_epoch: Whether to save full state at epoch
+            accelerate_full_state_at_epoch: Whether to save full state at epoch for automatic checkpoint resumption
             checkpoint_at_epoch: Whether to checkpoint at each epoch
             nproc_per_node: Number of processes (GPUs) per node
             nnodes: Total number of nodes
@@ -188,11 +188,11 @@ def sft(model_path: str,
         effective_batch_size: Effective batch size for training
         learning_rate: Learning rate for training
         max_seq_len: Maximum sequence length
-        max_batch_len: Maximum batch length
+        max_batch_len: Maximum tokens per GPU (hard memory cap)
         data_output_dir: Directory to save processed data
-        save_samples: Number of samples to save
+        save_samples: Number of samples to save after training (0 disables saving based on sample count)
         warmup_steps: Number of warmup steps
-        accelerate_full_state_at_epoch: Whether to save full state at epoch
+        accelerate_full_state_at_epoch: Whether to save full state at epoch for automatic checkpoint resumption
         checkpoint_at_epoch: Whether to checkpoint at each epoch
         nproc_per_node: Number of processes (GPUs) per node for distributed training
         nnodes: Total number of nodes for distributed training

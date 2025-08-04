@@ -87,17 +87,34 @@ SFTAlgorithm = AlgorithmRegistry.get_algorithm('sft')
 - `data_path` (str): Path to the training data
 - `ckpt_output_dir` (str): Directory to save checkpoints
 
-### Optional Parameters
+### Optional Training Parameters
 
-- `num_epochs` (int, default=1): Number of training epochs
-- `effective_batch_size` (int, default=3840): Effective batch size for training
-- `learning_rate` (float, default=2e-6): Learning rate
-- `max_seq_len` (int, default=4096): Maximum sequence length
-- `max_batch_len` (int, default=60000): Maximum batch length
+**Core Training Parameters:**
+- `num_epochs` (int): Number of training epochs (defaults from TrainingArgs)
+- `effective_batch_size` (int): Effective batch size for training (defaults from TrainingArgs)
+- `learning_rate` (float): Learning rate (defaults from TrainingArgs)
+- `max_seq_len` (int): Maximum sequence length (defaults from TrainingArgs)
+- `max_batch_len` (int): Maximum tokens per GPU (hard memory cap) (defaults from TrainingArgs)
+
+**Additional Training Parameters:**
+- `data_output_dir` (str): Directory to save processed data
+- `save_samples` (int): Number of samples to save after training (0 disables saving based on sample count)
+- `warmup_steps` (int): Number of warmup steps
+- `accelerate_full_state_at_epoch` (bool): Whether to save full state at epoch for automatic checkpoint resumption
+- `checkpoint_at_epoch` (bool): Whether to checkpoint at each epoch
+
+**Multi-Node Parameters:**
+- `nproc_per_node` (int): Number of processes (GPUs) per node
+- `nnodes` (int): Total number of nodes in the cluster  
+- `node_rank` (int): Rank of this node (0 to nnodes-1)
+- `rdzv_id` (int): Unique job ID for rendezvous
+- `rdzv_endpoint` (str): Master node endpoint (format: "host:port")
 
 ### Backend Selection
 
 - `backend` (str, default="instructlab-training"): Backend implementation to use
+
+**Note:** Default values are handled by the underlying TrainingArgs from instructlab-training, so you only need to specify parameters you want to customize.
 
 ## Error Handling
 
