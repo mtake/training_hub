@@ -44,8 +44,8 @@ class InstructLabTrainingSFTBackend(Backend):
         
         # Execute training
         return run_training(
-            torchrun_args=torchrun_args,
-            training_args=training_args
+            torch_args=torchrun_args,
+            train_args=training_args
         )
 
 
