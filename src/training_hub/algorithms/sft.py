@@ -9,37 +9,17 @@ class InstructLabTrainingSFTBackend(Backend):
     
     def execute_training(self, algorithm_params: Dict[str, Any]) -> Any:
         """Execute SFT training using instructlab-training."""
-        model_path = algorithm_params['model_path']
-        data_path = algorithm_params['data_path'] 
-        ckpt_output_dir = algorithm_params['ckpt_output_dir']
+        # Separate torchrun parameters from training parameters
+        torchrun_keys = {'nproc_per_node', 'nnodes', 'node_rank', 'rdzv_id', 'rdzv_endpoint'}
         
-        # Extract optional parameters with defaults
-        num_epochs = algorithm_params.get('num_epochs', 1)
-        effective_batch_size = algorithm_params.get('effective_batch_size', 3840)
-        learning_rate = algorithm_params.get('learning_rate', 2e-6)
-        max_seq_len = algorithm_params.get('max_seq_len', 4096)
-        max_batch_len = algorithm_params.get('max_batch_len', 60000)
+        # Extract torchrun parameters
+        torchrun_params = {k: v for k, v in algorithm_params.items() if k in torchrun_keys}
         
-        # Set up training arguments
-        training_args = TrainingArgs(
-            model_path=model_path,
-            data_path=data_path,
-            ckpt_output_dir=ckpt_output_dir,
-            num_epochs=num_epochs,
-            effective_batch_size=effective_batch_size,
-            learning_rate=learning_rate,
-            max_seq_len=max_seq_len,
-            max_batch_len=max_batch_len,
-            # Add other training args as needed
-        )
+        # Extract training parameters (everything except torchrun params)
+        training_params = {k: v for k, v in algorithm_params.items() if k not in torchrun_keys}
         
-        # Extract torchrun parameters for multi-node support
-        torchrun_params = {}
-        torchrun_keys = ['nproc_per_node', 'nnodes', 'node_rank', 'rdzv_id', 'rdzv_endpoint']
-        
-        for key in torchrun_keys:
-            if key in algorithm_params:
-                torchrun_params[key] = algorithm_params[key]
+        # Create TrainingArgs with all provided parameters, letting it handle defaults
+        training_args = TrainingArgs(**training_params)
         
         # Set up torchrun arguments - use defaults if not specified
         if torchrun_params:
@@ -72,44 +52,78 @@ class SFTAlgorithm(Algorithm):
               model_path: str,
               data_path: str, 
               ckpt_output_dir: str,
-              num_epochs: int = 1,
-              effective_batch_size: int = 3840,
-              learning_rate: float = 2e-6,
-              max_seq_len: int = 4096,
-              max_batch_len: int = 60000,
+              # Training parameters (defaults from TrainingArgs)
+              num_epochs: Optional[int] = None,
+              effective_batch_size: Optional[int] = None,
+              learning_rate: Optional[float] = None,
+              max_seq_len: Optional[int] = None,
+              max_batch_len: Optional[int] = None,
+              data_output_dir: Optional[str] = None,
+              save_samples: Optional[int] = None,
+              warmup_steps: Optional[int] = None,
+              accelerate_full_state_at_epoch: Optional[bool] = None,
+              checkpoint_at_epoch: Optional[bool] = None,
               # Torchrun parameters for multi-node support
-              nproc_per_node: int = None,
-              nnodes: int = None,
-              node_rank: int = None,
-              rdzv_id: int = None,
-              rdzv_endpoint: str = None,
+              nproc_per_node: Optional[int] = None,
+              nnodes: Optional[int] = None,
+              node_rank: Optional[int] = None,
+              rdzv_id: Optional[int] = None,
+              rdzv_endpoint: Optional[str] = None,
               **kwargs) -> Any:
-        """Execute SFT training."""
-        params = {
-            'model_path': model_path,
-            'data_path': data_path,
-            'ckpt_output_dir': ckpt_output_dir,
+        """Execute SFT training.
+        
+        Args:
+            model_path: Path to the model to fine-tune
+            data_path: Path to the training data
+            ckpt_output_dir: Directory to save checkpoints
+            num_epochs: Number of training epochs
+            effective_batch_size: Effective batch size for training
+            learning_rate: Learning rate for training
+            max_seq_len: Maximum sequence length
+            max_batch_len: Maximum batch length
+            data_output_dir: Directory to save processed data
+            save_samples: Number of samples to save
+            warmup_steps: Number of warmup steps
+            accelerate_full_state_at_epoch: Whether to save full state at epoch
+            checkpoint_at_epoch: Whether to checkpoint at each epoch
+            nproc_per_node: Number of processes (GPUs) per node
+            nnodes: Total number of nodes
+            node_rank: Rank of this node (0 to nnodes-1)
+            rdzv_id: Unique job ID for rendezvous
+            rdzv_endpoint: Master node endpoint for multi-node training
+            **kwargs: Additional parameters passed to the backend
+            
+        Returns:
+            Training result from the backend
+        """
+        # Build parameters dict, only including non-None values
+        params = {'model_path': model_path, 'data_path': data_path, 'ckpt_output_dir': ckpt_output_dir}
+        
+        # Add optional parameters if provided
+        optional_params = {
             'num_epochs': num_epochs,
             'effective_batch_size': effective_batch_size,
             'learning_rate': learning_rate,
             'max_seq_len': max_seq_len,
             'max_batch_len': max_batch_len,
-            **kwargs
-        }
-        
-        # Add torchrun parameters if provided
-        torchrun_params = {
+            'data_output_dir': data_output_dir,
+            'save_samples': save_samples,
+            'warmup_steps': warmup_steps,
+            'accelerate_full_state_at_epoch': accelerate_full_state_at_epoch,
+            'checkpoint_at_epoch': checkpoint_at_epoch,
             'nproc_per_node': nproc_per_node,
-            'nnodes': nnodes, 
+            'nnodes': nnodes,
             'node_rank': node_rank,
             'rdzv_id': rdzv_id,
-            'rdzv_endpoint': rdzv_endpoint
+            'rdzv_endpoint': rdzv_endpoint,
         }
         
-        # Only add non-None torchrun parameters
-        for key, value in torchrun_params.items():
+        # Only add non-None parameters (let TrainingArgs handle defaults)
+        for key, value in optional_params.items():
             if value is not None:
                 params[key] = value
+                
+        params.update(kwargs)
         
         return self.backend.execute_training(params)
     
@@ -137,12 +151,23 @@ def sft(model_path: str,
         data_path: str, 
         ckpt_output_dir: str,
         backend: str = "instructlab-training",
-        # Multi-node support
-        nproc_per_node: int = None,
-        nnodes: int = None,
-        node_rank: int = None,
-        rdzv_id: int = None,
-        rdzv_endpoint: str = None,
+        # Training parameters (defaults from TrainingArgs)
+        num_epochs: Optional[int] = None,
+        effective_batch_size: Optional[int] = None,
+        learning_rate: Optional[float] = None,
+        max_seq_len: Optional[int] = None,
+        max_batch_len: Optional[int] = None,
+        data_output_dir: Optional[str] = None,
+        save_samples: Optional[int] = None,
+        warmup_steps: Optional[int] = None,
+        accelerate_full_state_at_epoch: Optional[bool] = None,
+        checkpoint_at_epoch: Optional[bool] = None,
+        # Torchrun parameters for multi-node support
+        nproc_per_node: Optional[int] = None,
+        nnodes: Optional[int] = None,
+        node_rank: Optional[int] = None,
+        rdzv_id: Optional[int] = None,
+        rdzv_endpoint: Optional[str] = None,
         **kwargs) -> Any:
     """Convenience function to run SFT training.
     
@@ -151,7 +176,22 @@ def sft(model_path: str,
         data_path: Path to the training data
         ckpt_output_dir: Directory to save checkpoints
         backend: Backend implementation to use (default: "instructlab-training")
-        **kwargs: Additional training parameters
+        num_epochs: Number of training epochs
+        effective_batch_size: Effective batch size for training
+        learning_rate: Learning rate for training
+        max_seq_len: Maximum sequence length
+        max_batch_len: Maximum batch length
+        data_output_dir: Directory to save processed data
+        save_samples: Number of samples to save
+        warmup_steps: Number of warmup steps
+        accelerate_full_state_at_epoch: Whether to save full state at epoch
+        checkpoint_at_epoch: Whether to checkpoint at each epoch
+        nproc_per_node: Number of processes (GPUs) per node for distributed training
+        nnodes: Total number of nodes for distributed training
+        node_rank: Rank of this node (0 to nnodes-1) for distributed training
+        rdzv_id: Unique job ID for rendezvous in distributed training
+        rdzv_endpoint: Master node endpoint for multi-node training
+        **kwargs: Additional parameters passed to the backend
     
     Returns:
         Training result from the backend
@@ -163,6 +203,16 @@ def sft(model_path: str,
         model_path=model_path,
         data_path=data_path,
         ckpt_output_dir=ckpt_output_dir,
+        num_epochs=num_epochs,
+        effective_batch_size=effective_batch_size,
+        learning_rate=learning_rate,
+        max_seq_len=max_seq_len,
+        max_batch_len=max_batch_len,
+        data_output_dir=data_output_dir,
+        save_samples=save_samples,
+        warmup_steps=warmup_steps,
+        accelerate_full_state_at_epoch=accelerate_full_state_at_epoch,
+        checkpoint_at_epoch=checkpoint_at_epoch,
         nproc_per_node=nproc_per_node,
         nnodes=nnodes,
         node_rank=node_rank,
