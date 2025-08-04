@@ -13,13 +13,12 @@ requires-python = ">=3.11"
 dependencies = [
     "instructlab-training"
 ]
+dynamic = ["version"]
 
 [project.optional-dependencies]
 cuda = [
     "instructlab-training[cuda]"
 ]
-
-dynamic = ["version"]
 
 [project.urls]
 homepage = "https://ai-innovation.team/"
