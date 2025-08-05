@@ -58,10 +58,26 @@ pip install training-hub[cuda]
 pip install -e .[cuda]
 ```
 
-**Note:** If you encounter build issues with flash-attn, install torch first:
+**Note:** If you encounter build issues with flash-attn, install the base package first:
 ```bash
-pip install torch
+# Install base package (provides torch, packaging, wheel, ninja)
+pip install training-hub
+# Then install with CUDA extras
 pip install training-hub[cuda]
+
+# For development installation:
+pip install -e .
+pip install -e .[cuda]
+```
+
+**For uv users:** You may need the `--no-build-isolation` flag:
+```bash
+uv pip install training-hub
+uv pip install training-hub[cuda] --no-build-isolation
+
+# For development:
+uv pip install -e .
+uv pip install -e .[cuda] --no-build-isolation
 ```
 
 ## Getting Started
