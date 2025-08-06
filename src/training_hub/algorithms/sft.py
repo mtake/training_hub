@@ -18,6 +18,10 @@ class InstructLabTrainingSFTBackend(Backend):
         # Extract training parameters (everything except torchrun params)
         training_params = {k: v for k, v in algorithm_params.items() if k not in torchrun_keys}
         
+        # Map training_hub parameter names to instructlab-training parameter names
+        if 'max_tokens_per_gpu' in training_params:
+            training_params['max_batch_len'] = training_params.pop('max_tokens_per_gpu')
+        
         # Create TrainingArgs with all provided parameters, letting it handle defaults
         training_args = TrainingArgs(**training_params)
         
@@ -65,7 +69,7 @@ class SFTAlgorithm(Algorithm):
               effective_batch_size: Optional[int] = None,
               learning_rate: Optional[float] = None,
               max_seq_len: Optional[int] = None,
-              max_batch_len: Optional[int] = None,
+              max_tokens_per_gpu: Optional[int] = None,
               data_output_dir: Optional[str] = None,
               save_samples: Optional[int] = None,
               warmup_steps: Optional[int] = None,
@@ -88,7 +92,7 @@ class SFTAlgorithm(Algorithm):
             effective_batch_size: Effective batch size for training
             learning_rate: Learning rate for training
             max_seq_len: Maximum sequence length
-            max_batch_len: Maximum tokens per GPU (hard memory cap)
+            max_tokens_per_gpu: Maximum tokens per GPU in a mini-batch (hard-cap for memory to avoid OOMs). Used to automatically calculate mini-batch size and gradient accumulation to maintain the desired effective_batch_size while staying within memory limits.
             data_output_dir: Directory to save processed data
             save_samples: Number of samples to save after training (0 disables saving based on sample count)
             warmup_steps: Number of warmup steps
@@ -113,7 +117,7 @@ class SFTAlgorithm(Algorithm):
             'effective_batch_size': effective_batch_size,
             'learning_rate': learning_rate,
             'max_seq_len': max_seq_len,
-            'max_batch_len': max_batch_len,
+            'max_tokens_per_gpu': max_tokens_per_gpu,
             'data_output_dir': data_output_dir,
             'save_samples': save_samples,
             'warmup_steps': warmup_steps,
@@ -164,7 +168,7 @@ def sft(model_path: str,
         effective_batch_size: Optional[int] = None,
         learning_rate: Optional[float] = None,
         max_seq_len: Optional[int] = None,
-        max_batch_len: Optional[int] = None,
+        max_tokens_per_gpu: Optional[int] = None,
         data_output_dir: Optional[str] = None,
         save_samples: Optional[int] = None,
         warmup_steps: Optional[int] = None,
@@ -188,7 +192,7 @@ def sft(model_path: str,
         effective_batch_size: Effective batch size for training
         learning_rate: Learning rate for training
         max_seq_len: Maximum sequence length
-        max_batch_len: Maximum tokens per GPU (hard memory cap)
+        max_tokens_per_gpu: Maximum tokens per GPU in a mini-batch (hard-cap for memory to avoid OOMs). Used to automatically calculate mini-batch size and gradient accumulation to maintain the desired effective_batch_size while staying within memory limits.
         data_output_dir: Directory to save processed data
         save_samples: Number of samples to save after training (0 disables saving based on sample count)
         warmup_steps: Number of warmup steps
@@ -215,7 +219,7 @@ def sft(model_path: str,
         effective_batch_size=effective_batch_size,
         learning_rate=learning_rate,
         max_seq_len=max_seq_len,
-        max_batch_len=max_batch_len,
+        max_tokens_per_gpu=max_tokens_per_gpu,
         data_output_dir=data_output_dir,
         save_samples=save_samples,
         warmup_steps=warmup_steps,

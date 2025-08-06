@@ -94,7 +94,7 @@ SFTAlgorithm = AlgorithmRegistry.get_algorithm('sft')
 - `effective_batch_size` (int): Effective batch size for training (defaults from TrainingArgs)
 - `learning_rate` (float): Learning rate (defaults from TrainingArgs)
 - `max_seq_len` (int): Maximum sequence length (defaults from TrainingArgs)
-- `max_batch_len` (int): Maximum tokens per GPU (hard memory cap) (defaults from TrainingArgs)
+- `max_tokens_per_gpu` (int): Maximum tokens per GPU in a mini-batch (hard-cap for memory to avoid OOMs). Used to automatically calculate mini-batch size and gradient accumulation to maintain the desired effective_batch_size while staying within memory limits. (defaults from TrainingArgs)
 
 **Additional Training Parameters:**
 - `data_output_dir` (str): Directory to save processed data
