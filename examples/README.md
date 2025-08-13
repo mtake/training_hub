@@ -1,0 +1,41 @@
+# Training Hub Examples
+
+This directory contains documentation, tutorials, and examples for using training_hub algorithms.
+
+## Directory Structure
+
+- **`docs/`** - Usage documentation and guides for supported algorithms
+- **`notebooks/`** - Interactive Jupyter notebooks with step-by-step tutorials
+- **`scripts/`** - Standalone Python scripts for automation and examples
+
+## Supported Algorithms
+
+### Supervised Fine-Tuning (SFT)
+
+The SFT algorithm supports training language models on supervised datasets with both single-node and multi-node distributed training capabilities.
+
+**Documentation:**
+- [SFT Usage Guide](docs/sft_usage.md) - Comprehensive usage documentation with parameter reference and examples
+
+**Tutorials:**
+- [LAB Multi-Phase Training Tutorial](notebooks/lab_multiphase_training_tutorial.ipynb) - Interactive notebook demonstrating LAB multi-phase training workflow
+
+**Quick Example:**
+```python
+from training_hub import sft
+
+result = sft(
+    model_path="/path/to/model",
+    data_path="/path/to/data",
+    ckpt_output_dir="/path/to/checkpoints",
+    num_epochs=3,
+    learning_rate=2e-5,
+    max_tokens_per_gpu=45000
+)
+```
+
+## Getting Started
+
+1. **For detailed parameter documentation**: Check the relevant guide in `docs/`
+2. **For hands-on learning**: Open the interactive notebooks in `notebooks/`
+3. **For automation scripts**: Refer to examples in `scripts/`
