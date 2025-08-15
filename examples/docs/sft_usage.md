@@ -2,6 +2,42 @@
 
 This document shows how to use the SFT (Supervised Fine-Tuning) algorithm in training_hub.
 
+## Data Format Requirements
+
+Training Hub supports **messages format** data via the instructlab-training backend. Your training data must be a **JSON Lines (.jsonl)** file containing messages data.
+
+### Required Format: JSONL with Messages
+
+Each line in your JSONL file should contain a conversation sample:
+
+```json
+{"messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "Hello!"}, {"role": "assistant", "content": "Hi there! How can I help you?"}]}
+{"messages": [{"role": "user", "content": "What is SFT?"}, {"role": "assistant", "content": "SFT stands for Supervised Fine-Tuning..."}]}
+```
+
+### Message Structure
+
+- **`role`**: One of `"system"`, `"user"`, `"assistant"`, or `"pretraining"`
+- **`content`**: The text content of the message
+- **`reasoning_content`** (optional): Additional reasoning traces
+
+### Masking Control with `unmask` Field
+
+Control training behavior with the optional `unmask` metadata field:
+
+**Standard instruction tuning (default):**
+```json
+{"messages": [...]}  // Only assistant responses used for loss
+{"messages": [...], "unmask": false}  // Same as above
+```
+
+**Pretraining mode:**
+```json
+{"messages": [...], "unmask": true}  // All content except system messages used for loss
+```
+
+When `unmask=true`, the model learns from both user and assistant messages (pretraining-style). When `unmask=false` or absent, only assistant messages are used for training loss (classic instruction-tuning).
+
 ## Simple Usage with Convenience Function
 
 The easiest way to run SFT training is using the convenience function:
