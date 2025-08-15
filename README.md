@@ -81,3 +81,5 @@ uv pip install -e .[cuda] --no-build-isolation
 ```
 
 ## Getting Started
+
+For comprehensive tutorials, examples, and documentation, see the [examples directory](examples/).
