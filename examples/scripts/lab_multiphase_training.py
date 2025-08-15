@@ -42,8 +42,8 @@ def main():
                        help='Prefix for experiment names (default: lab_multiphase_training)')
     
     # Training hyperparameters
-    parser.add_argument('--max-tokens-per-gpu', type=int, default=30000,
-                       help='Memory limit per GPU (reduce if hitting OOM errors, default: 30000)')
+    parser.add_argument('--max-tokens-per-gpu', type=int, default=25000,
+                       help='Memory limit per GPU (reduce if hitting OOM errors, default: 25000)')
     parser.add_argument('--max-seq-len', type=int, default=20000,
                        help='Maximum sequence length (default: 20000)')
     parser.add_argument('--num-epochs', type=int, default=7,
@@ -90,7 +90,7 @@ def main():
     print("\nData composition:")
     print(f"  Phase07: Knowledge data only ({args.phase07_data_path})")
     print(f"  Phase10: Skills + Phase07 replay + Base model instruction replay ({args.phase10_data_path})")
-    if args.max_tokens_per_gpu < 30000:
+    if args.max_tokens_per_gpu < 25000:
         print(f"\n💡 Note: Using reduced max_tokens_per_gpu for memory conservation")
     print()
     
