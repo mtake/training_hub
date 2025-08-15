@@ -20,6 +20,9 @@ The SFT algorithm supports training language models on supervised datasets with 
 **Tutorials:**
 - [LAB Multi-Phase Training Tutorial](notebooks/lab_multiphase_training_tutorial.ipynb) - Interactive notebook demonstrating LAB multi-phase training workflow
 
+**Scripts:**
+- [LAB Multi-Phase Training Script](scripts/lab_multiphase_training.py) - Example script for LAB multi-phase training with full command-line interface
+
 **Quick Example:**
 ```python
 from training_hub import sft
