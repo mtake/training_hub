@@ -41,7 +41,8 @@ dependencies = [
     "xxhash>=3.0",
     "requests>=2.32.5",
     "attr==0.3.2",
-    "filelock==3.19.1"
+    "filelock==3.19.1",
+    "mpmath--1.3.0"
 ]
 
 dynamic = ["version"]
@@ -51,6 +52,11 @@ cuda = [
     "instructlab-training[cuda]>=0.11.1",
     "flash-attn>=2.8",
     "einops>=0.8"
+]
+
+gpt-oss = [
+    "transformers>=4.55.0",
+    "instructlab-training[cuda] @ git+https://github.com/instructlab/training.git@7bd2ff2b0b8972465a06e55c1c6c42bb4b4881ca",
 ]
 
 [project.urls]
