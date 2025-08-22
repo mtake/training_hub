@@ -16,6 +16,10 @@ class Algorithm(ABC):
         """Return dictionary of required parameter names and their types."""
         pass
 
+    @abstractmethod
+    def get_optional_params(self) -> Dict[str, Type]:
+        """Return dictionary of optional parameter names and their types."""
+        pass
 
 class Backend(ABC):
     """Base class for all backend implementations."""

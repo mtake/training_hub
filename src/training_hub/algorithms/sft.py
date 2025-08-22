@@ -152,13 +152,28 @@ class SFTAlgorithm(Algorithm):
             'max_batch_len': int,
         }
 
+    def get_optional_params(self) -> Dict[str, Type]:
+        """Return optional parameters for SFT."""
+        return {
+            'max_tokens_per_gpu': int,
+            'data_output_dir': str,
+            'save_samples': int,
+            'warmup_steps': int,
+            'accelerate_full_state_at_epoch': bool,
+            'checkpoint_at_epoch': bool,
+            'nproc_per_node': int,
+            'nnodes': int,
+            'node_rank': int,
+            'rdzv_id': int,
+            'rdzv_endpoint': str,
+        }
+
 
 # Register the algorithm and backend
 AlgorithmRegistry.register_algorithm('sft', SFTAlgorithm)
 AlgorithmRegistry.register_backend('sft', 'instructlab-training', InstructLabTrainingSFTBackend)
 
 
-# Convenience function for backwards compatibility
 def sft(model_path: str, 
         data_path: str, 
         ckpt_output_dir: str,
