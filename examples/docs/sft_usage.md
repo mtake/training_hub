@@ -241,7 +241,6 @@ This architecture supports adding new algorithms and backends:
 # Future algorithms might include:
 # - DPO (Direct Preference Optimization)
 # - LoRA (Low-Rank Adaptation)
-# - OSFT (Continual Learning via OSFT)
 
 # Example of what future usage might look like:
 # from training_hub import dpo, lora

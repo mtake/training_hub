@@ -27,12 +27,12 @@ class OSFTAlgorithm(Algorithm):
         self,
         model_path: str,
         data_path: str,
+        unfreeze_rank_ratio: float,
         batch_size: int,
         max_tokens_per_gpu: int,
         max_seq_len: int,
         learning_rate: float,
         output_dir: str,
-        unfreeze_rank_ratio: float,
 
         # patterns that we want to match against when selecting
         # modules for OSFT
@@ -84,6 +84,9 @@ class OSFTAlgorithm(Algorithm):
                 Path to the training data. When `use_processed_dataset` is True,
                 this is the path to the processed dataset. When `use_processed_dataset` is False,
                 this is the path to the original dataset.
+            unfreeze_rank_ratio (float):
+                Controls the amount that each matrix is unfrozen during OSFT. 
+                Valid values are between 0.0 and 1.0.
             batch_size (int): Batch size for training.
             max_tokens_per_gpu (int):
                 The maximum number of tokens placed on a single GPU for training.
@@ -95,29 +98,26 @@ class OSFTAlgorithm(Algorithm):
             output_dir (str):
                 Directory where outputs from training will be saved, including checkpoints, logs, and 
                 any necessary intermediate files.
-            unfreeze_rank_ratio (float):
-                Controls the amount that each matrix is unfrozen during OSFT. 
-                Valid values are between 0.0 and 1.0.
             target_patterns (list[str]):
                 List of patterns to match against when selecting modules for OSFT,
                 useful for custom training regimes or enabling OSFT for custom models which
                 do not have pre-defined defaults.
             seed (int): Random seed for training.
             use_liger (bool): Whether to use Liger kernels for training.
-            unmask_messages (bool):
-                Whether to unmask messages during data processing. This value is ignored
-                when `use_processed_dataset` is True.
-            use_processed_dataset (bool):
-                Whether to use the processed dataset. If False, the data is assumed to be in standard
-                messages format witha `messages` and optional `unmask` field on each sample.
-                When True, we assume that each sample has an `input_ids` and `labels` field containing
-                data tokenized for the model being trained.
             lr_scheduler (str): Name of the PyTorchlearning rate scheduler to use.
             warmup_steps (int): Number of warmup steps for the learning rate scheduler.
             lr_scheduler_kwargs (dict[str, str]): Additional scheduler parameters.
             checkpoint_at_epoch (bool): Whether to checkpoint at each epoch.
             save_final_checkpoint (bool): Whether to save final checkpoint once training is complete.
             epochs (int): Number of epochs to train for.
+            use_processed_dataset (bool):
+                Whether to use the processed dataset. If False, the data is assumed to be in standard
+                messages format witha `messages` and optional `unmask` field on each sample.
+                When True, we assume that each sample has an `input_ids` and `labels` field containing
+                data tokenized for the model being trained.
+            unmask_messages (bool):
+                Whether to unmask messages during data processing. This value is ignored
+                when `use_processed_dataset` is True.
             nproc_per_node (int): Number of processes (GPUs) per node for distributed training.
             nnodes (int): Total number of nodes for distributed training.
             node_rank (int): Rank of this node (0 to nnodes-1) for distributed training. 
@@ -161,9 +161,6 @@ class OSFTAlgorithm(Algorithm):
             'checkpoint_at_epoch': checkpoint_at_epoch,
             'save_final_checkpoint': save_final_checkpoint,
 
-            # mini trainer supports a few different modes, but we fix this one for simplicty
-            # another mode can be selected by overriding via kwargs
-            'training_mode': 'epoch',  
             'epochs': epochs,
 
             'use_liger': use_liger, 
@@ -181,30 +178,18 @@ class OSFTAlgorithm(Algorithm):
         for required_param in self.get_required_params().keys():
             if required_param not in required_params:
                 raise ValueError(f"error: required parameter not provided: {required_param}")
+ 
+        # validate types of all parameters
+        self._validate_param_types(required_params)
+        self._validate_param_types(optional_params)
+        self._validate_param_types(kwargs)
         
-        all_params = dict(
-            **required_params,
-        )
+        all_params = dict(**required_params)
         all_params.update(optional_params)
         all_params.update(kwargs)
-        
-        # validate types of all parameters
-        self._validate_param_types(all_params)
 
-        # Apply parameter renaming for backend compatibility
-        renames = {
-            'use_liger': 'use_liger_kernels',
-            'warmup_steps': 'num_warmup_steps',
-            'target_patterns': 'osft_target_patterns',
-            'unfreeze_rank_ratio': 'osft_unfreeze_rank_ratio',
-            'model_path': 'model_name_or_path',
-            'epochs': 'max_epochs',
-        }
-        
-        # Rename parameters before sending to backend
-        renamed_params = {renames.get(k, k): v for k, v in all_params.items()}
-        return self.backend.execute_training(renamed_params)
-        
+        return self.backend.execute_training(all_params)
+ 
     def get_required_params(self) -> dict[str, type]:
         """Return dictionary of required parameter names and their types."""
         return {
@@ -222,22 +207,21 @@ class OSFTAlgorithm(Algorithm):
         """Return dictionary of optional parameter names and their types."""
         return {
             'target_patterns': list[str],
-            'unmask_messages': bool,
+            'seed': int,
+            'use_liger': bool,
             'lr_scheduler': str,
-            'lr_scheduler_kwargs': dict[str, str],
             'warmup_steps': int,
+            'lr_scheduler_kwargs': dict[str, str],
             'checkpoint_at_epoch': bool,
             'save_final_checkpoint': bool,
-            'training_mode': str,
-            'max_epochs': int,
-            'use_liger': bool,
-            'seed': int,
+            'epochs': int,
+            'use_processed_dataset': bool,
+            'unmask_messages': bool,
             'nproc_per_node': int,
             'nnodes': int,
             'node_rank': int,
             'rdzv_id': int,
             'rdzv_endpoint': str,
-            'use_processed_dataset': bool,
         }
 
     def _validate_param_types(self, params: dict[str, any]):
@@ -328,12 +312,31 @@ class MiniTrainerOSFTBackend(Backend):
         """
         from mini_trainer import run_training, TrainingArgs, TorchrunArgs, TrainingMode
 
-        # get the already-renamed parameters from the algorithm
-        
+        # here we translate the parameter names that the algorithm used
+        # into those used by the backend
+        renames = {
+            'use_liger': 'use_liger_kernels',
+            'warmup_steps': 'num_warmup_steps',
+            'target_patterns': 'osft_target_patterns',
+            'unfreeze_rank_ratio': 'osft_unfreeze_rank_ratio',
+            'model_path': 'model_name_or_path',
+            'epochs': 'max_epochs',
+        }
+ 
+        # Rename parameters before sending to backend
+        algorithm_params = {renames.get(k, k): v for k, v in algorithm_params.items()}
         
         # since mini trainer itself does not process data, we delegate this to
         # a separate backend, and expect to receive the correct data path
-        training_ready_data_path = self._process_data(algorithm_params)
+        training_ready_data_path = self._process_data(
+            data_path=algorithm_params['data_path'],  # should be there
+            model_name_or_path=algorithm_params['model_name_or_path'],  # should be there
+            output_dir=algorithm_params['output_dir'],
+            max_seq_len=algorithm_params['max_seq_len'],
+            num_cpu_procs=8,                                # this is a safe default
+            use_processed_dataset=algorithm_params.get('use_processed_dataset', False),
+            unmask_messages=algorithm_params.get('unmask_messages', False),
+        )
 
 
         # Separate parameters into their respective dataclass fields
@@ -343,7 +346,10 @@ class MiniTrainerOSFTBackend(Backend):
         # adjust arguments to align with the API definition 
         training_args_pre = {k: v for k, v in algorithm_params.items() if k in training_args_fields and v is not None}
         training_args_pre['data_path'] = training_ready_data_path  # replaces raw data path with processed
-        training_args_pre['training_mode'] = TrainingMode(training_args_pre['training_mode'])
+        
+        # mini trainer can support multiple modes, but we don't expose this feature by default
+        # to prevent the current API from becoming overly complicated
+        training_args_pre['training_mode'] = TrainingMode(training_args_pre.get('training_mode', 'epoch'))
         training_args_pre['osft'] = True
 
         torchrun_args_pre = {k: v for k, v in algorithm_params.items() if k in torchrun_args_fields and v is not None}
@@ -354,7 +360,16 @@ class MiniTrainerOSFTBackend(Backend):
             train_args=TrainingArgs(**training_args_pre),
         )
     
-    def _process_data(self, algorithm_params: dict[str, any]) -> str:
+    def _process_data(
+            self, 
+            model_name_or_path: str,
+            data_path: str,
+            output_dir: str,
+            max_seq_len: int,
+            num_cpu_procs: int,
+            unmask_messages: bool,
+            use_processed_dataset: bool,
+        ) -> str:
         """
         Process the data into a format that can be used for training.
 
@@ -365,19 +380,17 @@ class MiniTrainerOSFTBackend(Backend):
         from instructlab.training.data_process import process_messages_into_input_ids
 
         # if we're using the processed dataset, then we don't need to do any data processing
-        if algorithm_params['use_processed_dataset']:
-            return algorithm_params['data_path']
+        if use_processed_dataset:
+            return data_path
 
         # otherwise we need to process the data
-        output_dir = algorithm_params['output_dir']
         data_output_path = os.path.join(output_dir, '_internal_data_processing')
         os.makedirs(data_output_path, exist_ok=True)
 
         # if we received unmask then we need to add that
-        processing_data_path = algorithm_params['data_path']
-        unmask_messages = algorithm_params.get('unmask_messages', False)
+        processing_data_path = data_path
         if unmask_messages:
-            ds = datasets.load_dataset(algorithm_params['data_path'], split='train')
+            ds = datasets.load_dataset(data_path, split='train')
             ds = ds.map(lambda _: { "unmask": True }) 
             processing_data_path = os.path.join(data_output_path, 'intermediate_data.jsonl')
             ds.to_json(processing_data_path)
@@ -386,9 +399,9 @@ class MiniTrainerOSFTBackend(Backend):
         process_messages_into_input_ids(
             data_path=processing_data_path,
             data_output_path=data_output_path,
-            model_path=algorithm_params['model_name_or_path'],  # use renamed parameter
-            max_seq_len=algorithm_params['max_seq_len'],
-            num_cpu_procs=8,
+            model_path=model_name_or_path,
+            max_seq_len=max_seq_len,
+            num_cpu_procs=num_cpu_procs,
         )
 
         # above function will save to this file, so we pass this to the trainer
@@ -415,6 +428,7 @@ def osft(
     target_patterns: list[str] | None = None,
     seed: int | None = None,
     use_liger: bool | None = None,
+    use_processed_dataset: bool | None = None,
     unmask_messages: bool | None = None,
     lr_scheduler: str | None = None,
     warmup_steps: int | None = None,
@@ -445,6 +459,7 @@ def osft(
         target_patterns=target_patterns,
         seed=seed,
         use_liger=use_liger,
+        use_processed_dataset=use_processed_dataset,
         unmask_messages=unmask_messages,
         lr_scheduler=lr_scheduler,
         warmup_steps=warmup_steps,

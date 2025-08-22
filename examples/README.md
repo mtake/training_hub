@@ -41,6 +41,29 @@ result = sft(
 )
 ```
 
+### Orthogonal Subspace Fine-Tuning (OSFT)
+
+The OSFT algorithm supports continual training of pre-trained or instruction-tuned models without requiring supplementary datasets to maintain the original model distribution. Based on [Nayak et al. (2025)](https://arxiv.org/abs/2504.07097), it enables efficient customization while preventing catastrophic forgetting.
+
+**Documentation:**
+- [OSFT Usage Guide](docs/osft_usage.md) - Comprehensive usage documentation with parameter reference and examples
+
+**Quick Example:**
+```python
+from training_hub import osft
+
+result = osft(
+    model_path="/path/to/model",
+    data_path="/path/to/data.jsonl", 
+    output_dir="/path/to/outputs",
+    unfreeze_rank_ratio=0.3,
+    batch_size=8,
+    max_tokens_per_gpu=2048,
+    max_seq_len=2048,
+    learning_rate=2e-5
+)
+```
+
 ## Getting Started
 
 1. **For detailed parameter documentation**: Check the relevant guide in `docs/`
