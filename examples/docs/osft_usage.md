@@ -69,9 +69,9 @@ from training_hub import osft
 result = osft(
     model_path="/path/to/your/model",
     data_path="/path/to/your/training/data.jsonl",
-    output_dir="/path/to/save/outputs",
+    ckpt_output_dir="/path/to/save/outputs",
     unfreeze_rank_ratio=0.3,
-    batch_size=8,
+    effective_batch_size=16,
     max_tokens_per_gpu=2048,
     max_seq_len=2048,
     learning_rate=2e-5
@@ -81,13 +81,13 @@ result = osft(
 result = osft(
     model_path="/path/to/your/model",
     data_path="/path/to/your/training/data.jsonl",
-    output_dir="/path/to/save/outputs",
+    ckpt_output_dir="/path/to/save/outputs",
     unfreeze_rank_ratio=0.2,
-    batch_size=4,
+    effective_batch_size=16,
     max_tokens_per_gpu=4096,
     max_seq_len=4096,
     learning_rate=1e-5,
-    epochs=3,
+    num_epochs=3,
     warmup_steps=100,
     use_liger=True,
     seed=42
@@ -108,13 +108,13 @@ osft_algo = create_algorithm('osft', 'mini-trainer')
 result = osft_algo.train(
     model_path="/path/to/your/model",
     data_path="/path/to/your/training/data.jsonl",
-    output_dir="/path/to/save/outputs",
+    ckpt_output_dir="/path/to/save/outputs",
     unfreeze_rank_ratio=0.25,
     batch_size=6,
     max_tokens_per_gpu=3072,
     max_seq_len=2048,
     learning_rate=1.5e-5,
-    epochs=2
+    num_epochs=2
 )
 
 # Check required parameters
@@ -147,9 +147,9 @@ OSFTAlgorithm = AlgorithmRegistry.get_algorithm('osft')
 
 - `model_path` (str): Local path or HuggingFace model ID to be used for fine-tuning
 - `data_path` (str): Path to the training data (processed or unprocessed)
-- `output_dir` (str): Directory where outputs from training will be saved
+- `ckpt_output_dir` (str): Directory where outputs from training will be saved
 - `unfreeze_rank_ratio` (float): Controls the amount that each matrix is unfrozen during OSFT (0.0-1.0)
-- `batch_size` (int): Batch size for training
+- `effective_batch_size` (int): Batch size for training
 - `max_tokens_per_gpu` (int): Maximum number of tokens placed on a single GPU
 - `max_seq_len` (int): Maximum sequence length (in tokens) for training samples
 - `learning_rate` (float): Learning rate for model update size
@@ -165,7 +165,7 @@ OSFTAlgorithm = AlgorithmRegistry.get_algorithm('osft')
 - `unmask_messages` (bool): Whether to unmask messages during data processing
 
 **Core Training Parameters:**
-- `epochs` (int): Number of epochs to train for
+- `num_epochs` (int): Number of epochs to train for
 - `seed` (int): Random seed for training
 - `use_liger` (bool): Whether to use Liger kernels for training
 
@@ -198,9 +198,9 @@ try:
     result = osft(
         model_path="/valid/model/path",
         data_path="/valid/data/path",
-        output_dir="/valid/output/path",
+        ckpt_output_dir="/valid/output/path",
         unfreeze_rank_ratio=0.3,
-        batch_size=8,
+        effective_batch_size=8,
         max_tokens_per_gpu=2048,
         max_seq_len=2048,
         learning_rate=2e-5
@@ -230,9 +230,9 @@ from training_hub import osft
 result = osft(
     model_path="/path/to/model",
     data_path="/path/to/data.jsonl",
-    output_dir="/path/to/outputs",
+    ckpt_output_dir="/path/to/outputs",
     unfreeze_rank_ratio=0.3,
-    batch_size=4,
+    effective_batch_size=4,
     max_tokens_per_gpu=2048,
     max_seq_len=2048,
     learning_rate=2e-5,
@@ -248,9 +248,9 @@ result = osft(
 result = osft(
     model_path="/path/to/model",
     data_path="/path/to/data.jsonl",
-    output_dir="/path/to/outputs",
+    ckpt_output_dir="/path/to/outputs",
     unfreeze_rank_ratio=0.25,
-    batch_size=2,
+    effective_batch_size=2,
     max_tokens_per_gpu=1024,
     max_seq_len=2048,
     learning_rate=1e-5,

@@ -1,5 +1,4 @@
 from typing import get_origin, get_args
-import sys
 
 def format_type_name(tp):
     # Handle None

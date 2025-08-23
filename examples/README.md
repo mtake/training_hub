@@ -55,9 +55,9 @@ from training_hub import osft
 result = osft(
     model_path="/path/to/model",
     data_path="/path/to/data.jsonl", 
-    output_dir="/path/to/outputs",
+    ckpt_output_dir="/path/to/outputs",
     unfreeze_rank_ratio=0.3,
-    batch_size=8,
+    effective_batch_size=8,
     max_tokens_per_gpu=2048,
     max_seq_len=2048,
     learning_rate=2e-5

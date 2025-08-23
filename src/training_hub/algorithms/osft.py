@@ -1,7 +1,5 @@
 import os
-import shutil
-from typing import Literal, get_origin, get_args, Union
-from itertools import chain
+from typing import get_origin, get_args, Union
 from dataclasses import fields
 
 import datasets
@@ -28,11 +26,11 @@ class OSFTAlgorithm(Algorithm):
         model_path: str,
         data_path: str,
         unfreeze_rank_ratio: float,
-        batch_size: int,
+        effective_batch_size: int,
         max_tokens_per_gpu: int,
         max_seq_len: int,
         learning_rate: float,
-        output_dir: str,
+        ckpt_output_dir: str,
 
         # patterns that we want to match against when selecting
         # modules for OSFT
@@ -52,11 +50,12 @@ class OSFTAlgorithm(Algorithm):
         save_final_checkpoint: bool | None = None,
         
         # parameters for the training mode
-        epochs: int | None = None,
+        num_epochs: int | None = None,
 
         # whether to use the processed dataset
         use_processed_dataset: bool | None = None,
         unmask_messages: bool | None = None,
+        data_output_dir: str | None = None,
 
         # Torchrun parameters for multi-node support
         nproc_per_node: int | None = None,
@@ -87,7 +86,7 @@ class OSFTAlgorithm(Algorithm):
             unfreeze_rank_ratio (float):
                 Controls the amount that each matrix is unfrozen during OSFT. 
                 Valid values are between 0.0 and 1.0.
-            batch_size (int): Batch size for training.
+            effective_batch_size (int): Effective batch size for training.
             max_tokens_per_gpu (int):
                 The maximum number of tokens placed on a single GPU for training.
                 When hitting OOMs, consider reducing this value.
@@ -95,8 +94,8 @@ class OSFTAlgorithm(Algorithm):
                 Sets the maximum sequence length (in tokens) of samples that will be used for training.
                 Any sample exceeding this length will be dropped from the dataset.
             learning_rate (float): Learning rate for model update size.
-            output_dir (str):
-                Directory where outputs from training will be saved, including checkpoints, logs, and 
+            ckpt_output_dir (str):
+                Directory where outputs from training will be saved such as checkpoints and logs.
                 any necessary intermediate files.
             target_patterns (list[str]):
                 List of patterns to match against when selecting modules for OSFT,
@@ -109,7 +108,7 @@ class OSFTAlgorithm(Algorithm):
             lr_scheduler_kwargs (dict[str, str]): Additional scheduler parameters.
             checkpoint_at_epoch (bool): Whether to checkpoint at each epoch.
             save_final_checkpoint (bool): Whether to save final checkpoint once training is complete.
-            epochs (int): Number of epochs to train for.
+            num_epochs (int): Number of epochs to train for.
             use_processed_dataset (bool):
                 Whether to use the processed dataset. If False, the data is assumed to be in standard
                 messages format witha `messages` and optional `unmask` field on each sample.
@@ -118,6 +117,10 @@ class OSFTAlgorithm(Algorithm):
             unmask_messages (bool):
                 Whether to unmask messages during data processing. This value is ignored
                 when `use_processed_dataset` is True.
+            data_output_dir (str):
+                Directory where outputs from data processing will be saved such as intermediate
+                files. When not provided, it defaults to `_internal_data_processing` under the
+                `ckpt_output_dir`.
             nproc_per_node (int): Number of processes (GPUs) per node for distributed training.
             nnodes (int): Total number of nodes for distributed training.
             node_rank (int): Rank of this node (0 to nnodes-1) for distributed training. 
@@ -137,11 +140,11 @@ class OSFTAlgorithm(Algorithm):
         required_params = {
             'model_path': model_path,
             'data_path': data_path,
-            'batch_size': batch_size,
+            'effective_batch_size': effective_batch_size,
             'max_tokens_per_gpu': max_tokens_per_gpu,
             'max_seq_len': max_seq_len,
             'learning_rate': learning_rate,
-            'output_dir': output_dir,
+            'ckpt_output_dir': ckpt_output_dir,
             'unfreeze_rank_ratio': unfreeze_rank_ratio,
         }
 
@@ -151,6 +154,7 @@ class OSFTAlgorithm(Algorithm):
             # for data processing
             'use_processed_dataset': use_processed_dataset,
             'unmask_messages': unmask_messages,
+            'data_output_dir': data_output_dir,
             
             # scheduler params
             'lr_scheduler': lr_scheduler,
@@ -161,7 +165,7 @@ class OSFTAlgorithm(Algorithm):
             'checkpoint_at_epoch': checkpoint_at_epoch,
             'save_final_checkpoint': save_final_checkpoint,
 
-            'epochs': epochs,
+            'num_epochs': num_epochs,
 
             'use_liger': use_liger, 
             'seed': seed,
@@ -196,11 +200,11 @@ class OSFTAlgorithm(Algorithm):
             'model_path': str,
             'data_path': str,
             'unfreeze_rank_ratio': float,
-            'batch_size': int,
+            'effective_batch_size': int,
             'max_tokens_per_gpu': int,
             'max_seq_len': int,
             'learning_rate': float,
-            'output_dir': str,
+            'ckpt_output_dir': str,
         }
 
     def get_optional_params(self) -> dict[str, type]:
@@ -214,9 +218,10 @@ class OSFTAlgorithm(Algorithm):
             'lr_scheduler_kwargs': dict[str, str],
             'checkpoint_at_epoch': bool,
             'save_final_checkpoint': bool,
-            'epochs': int,
+            'num_epochs': int,
             'use_processed_dataset': bool,
             'unmask_messages': bool,
+            'data_output_dir': str,
             'nproc_per_node': int,
             'nnodes': int,
             'node_rank': int,
@@ -320,18 +325,28 @@ class MiniTrainerOSFTBackend(Backend):
             'target_patterns': 'osft_target_patterns',
             'unfreeze_rank_ratio': 'osft_unfreeze_rank_ratio',
             'model_path': 'model_name_or_path',
-            'epochs': 'max_epochs',
+            'num_epochs': 'max_epochs',
+            'effective_batch_size': 'batch_size',
+            'ckpt_output_dir': 'output_dir',
         }
  
         # Rename parameters before sending to backend
         algorithm_params = {renames.get(k, k): v for k, v in algorithm_params.items()}
+
+        # We separate this from `ckpt_output_dir` so that we can use `/dev/shm` for low-latency data
+        # proceessing. But we do not want to make assumptions about the size of training data or the
+        # amount of memory on the host. So by default we write to storage, but expose this as a separate
+        # parameter for performaance gains.
+        data_output_dir = algorithm_params.get('data_output_dir', None)
+        if data_output_dir is None:
+            data_output_dir = os.path.join(algorithm_params['ckpt_output_dir'], '_internal_data_processing')
         
         # since mini trainer itself does not process data, we delegate this to
         # a separate backend, and expect to receive the correct data path
         training_ready_data_path = self._process_data(
             data_path=algorithm_params['data_path'],  # should be there
             model_name_or_path=algorithm_params['model_name_or_path'],  # should be there
-            output_dir=algorithm_params['output_dir'],
+            output_dir=data_output_dir,
             max_seq_len=algorithm_params['max_seq_len'],
             num_cpu_procs=8,                                # this is a safe default
             use_processed_dataset=algorithm_params.get('use_processed_dataset', False),
@@ -346,11 +361,16 @@ class MiniTrainerOSFTBackend(Backend):
         # adjust arguments to align with the API definition 
         training_args_pre = {k: v for k, v in algorithm_params.items() if k in training_args_fields and v is not None}
         training_args_pre['data_path'] = training_ready_data_path  # replaces raw data path with processed
-        
+
         # mini trainer can support multiple modes, but we don't expose this feature by default
         # to prevent the current API from becoming overly complicated
-        training_args_pre['training_mode'] = TrainingMode(training_args_pre.get('training_mode', 'epoch'))
-        training_args_pre['osft'] = True
+        if not isinstance(train_mode := training_args_pre.get('training_mode', TrainingMode.EPOCH), TrainingMode):
+            train_mode = TrainingMode(train_mode)
+        training_args_pre['training_mode'] = train_mode
+
+        # user may want to control this API field for debug purposes, so we allow for it to be read
+        # but default it to True
+        training_args_pre['osft'] = training_args_pre.get('osft', True)
 
         torchrun_args_pre = {k: v for k, v in algorithm_params.items() if k in torchrun_args_fields and v is not None}
 
@@ -384,28 +404,27 @@ class MiniTrainerOSFTBackend(Backend):
             return data_path
 
         # otherwise we need to process the data
-        data_output_path = os.path.join(output_dir, '_internal_data_processing')
-        os.makedirs(data_output_path, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
 
         # if we received unmask then we need to add that
         processing_data_path = data_path
         if unmask_messages:
             ds = datasets.load_dataset(data_path, split='train')
             ds = ds.map(lambda _: { "unmask": True }) 
-            processing_data_path = os.path.join(data_output_path, 'intermediate_data.jsonl')
+            processing_data_path = os.path.join(output_dir, 'intermediate_data.jsonl')
             ds.to_json(processing_data_path)
         
         # now we process the data
         process_messages_into_input_ids(
             data_path=processing_data_path,
-            data_output_path=data_output_path,
+            data_output_path=output_dir,
             model_path=model_name_or_path,
             max_seq_len=max_seq_len,
             num_cpu_procs=num_cpu_procs,
         )
 
         # above function will save to this file, so we pass this to the trainer
-        return os.path.join(data_output_path, 'data.jsonl')
+        return os.path.join(output_dir, 'data.jsonl')
     
             
 
@@ -417,12 +436,13 @@ AlgorithmRegistry.register_backend('osft', 'mini-trainer', MiniTrainerOSFTBacken
 def osft(
     model_path: str,
     data_path: str,
-    output_dir: str,
     unfreeze_rank_ratio: float,
-    batch_size: int,
+    effective_batch_size: int,
     max_tokens_per_gpu: int,
     max_seq_len: int,
     learning_rate: float,
+    ckpt_output_dir: str,
+    data_output_dir: str | None = None,
     backend: str = "mini-trainer",
     # Optional parameters
     target_patterns: list[str] | None = None,
@@ -435,7 +455,7 @@ def osft(
     lr_scheduler_kwargs: dict[str, str] | None = None,
     checkpoint_at_epoch: bool | None = None,
     save_final_checkpoint: bool | None = None,
-    epochs: int | None = None,
+    num_epochs: int | None = None,
     # Torchrun parameters for multi-node support
     nproc_per_node: int | None = None,
     nnodes: int | None = None,
@@ -450,9 +470,10 @@ def osft(
     return algorithm.train(
         model_path=model_path,
         data_path=data_path,
-        output_dir=output_dir,
+        ckpt_output_dir=ckpt_output_dir,
+        data_output_dir=data_output_dir,
         unfreeze_rank_ratio=unfreeze_rank_ratio,
-        batch_size=batch_size,
+        effective_batch_size=effective_batch_size,
         max_tokens_per_gpu=max_tokens_per_gpu,
         max_seq_len=max_seq_len,
         learning_rate=learning_rate,
@@ -466,7 +487,7 @@ def osft(
         lr_scheduler_kwargs=lr_scheduler_kwargs,
         checkpoint_at_epoch=checkpoint_at_epoch,
         save_final_checkpoint=save_final_checkpoint,
-        epochs=epochs,
+        num_epochs=num_epochs,
         nproc_per_node=nproc_per_node,
         nnodes=nnodes,
         node_rank=node_rank,
