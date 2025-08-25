@@ -60,7 +60,6 @@ gpt-oss = [
     "transformers>=4.55.0",
     "flash-attn>=2.8",
     "einops>=0.8",
-    "instructlab-training @ git+https://github.com/instructlab/training.git@7bd2ff2b0b8972465a06e55c1c6c42bb4b4881ca",
     "datasets>=4.0.0",
     "bitsandbytes==0.47.0",
     "pytest>=8.0",
