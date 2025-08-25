@@ -339,7 +339,7 @@ class MiniTrainerOSFTBackend(Backend):
         # parameter for performaance gains.
         data_output_dir = algorithm_params.get('data_output_dir', None)
         if data_output_dir is None:
-            data_output_dir = os.path.join(algorithm_params['ckpt_output_dir'], '_internal_data_processing')
+            data_output_dir = os.path.join(algorithm_params['output_dir'], '_internal_data_processing')
         
         # since mini trainer itself does not process data, we delegate this to
         # a separate backend, and expect to receive the correct data path
@@ -373,6 +373,9 @@ class MiniTrainerOSFTBackend(Backend):
         training_args_pre['osft'] = training_args_pre.get('osft', True)
 
         torchrun_args_pre = {k: v for k, v in algorithm_params.items() if k in torchrun_args_fields and v is not None}
+        # TODO: update this default in mini-trainer
+        torchrun_args_pre['rdzv_endpoint'] = torchrun_args_pre.get('rdzv_endpoint', 'localhost:1738')
+
 
         # now we run training
         return run_training(
