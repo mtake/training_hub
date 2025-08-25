@@ -3,13 +3,13 @@ An algorithm-focused interface for common llm training, continual learning, and 
 
 ## Support Matrix
 
-| Algorithm | InstructLab-Training | PEFT | VERL | Status |
-|-----------|---------------------|------|------|--------|
-| **Supervised Fine-tuning (SFT)** | ✅ | - | - | Implemented |
-| Continual Learning (OSFT) | 🔄 | 🔄 | - | Planned |
-| Direct Preference Optimization (DPO) | - | - | 🔄 | Planned |
-| Low-Rank Adaptation (LoRA) | 🔄 | 🔄 | - | Planned |
-| Group Relative Policy Optimization (GRPO) | - | - | 🔄 | Planned |
+| Algorithm | InstructLab-Training | RHAI Innovation Mini-Trainer | PEFT | VERL | Status |
+|-----------|---------------------|---------------|------|------|--------|
+| **Supervised Fine-tuning (SFT)** | ✅ | - | - | - | Implemented |
+| Continual Learning (OSFT) | 🔄 | ✅ | 🔄 | - | Planned |
+| Direct Preference Optimization (DPO) | - | - | - | 🔄 | Planned |
+| Low-Rank Adaptation (LoRA) | 🔄 | - | 🔄 | - | Planned |
+| Group Relative Policy Optimization (GRPO) | - | - | - | 🔄 | Planned |
 
 **Legend:**
 - ✅ Implemented and tested
@@ -18,7 +18,8 @@ An algorithm-focused interface for common llm training, continual learning, and 
 
 ## Implemented Algorithms
 
-### [Supervised Fine-tuning (SFT)](examples/sft_usage.md)
+### [Supervised Fine-tuning (SFT)](examples/docs/sft_usage.md)
+
 Fine-tune language models on supervised datasets with support for:
 - Single-node and multi-node distributed training
 - Configurable training parameters (epochs, batch size, learning rate, etc.)
@@ -33,6 +34,32 @@ result = sft(
     ckpt_output_dir="/path/to/checkpoints",
     num_epochs=3,
     learning_rate=1e-5
+)
+```
+
+### [Orthogonal Subspace Fine-Tuning (OSFT)](examples/docs/osft_usage.md)
+
+OSFT allows you to fine-tune models while controlling how much of its
+existing behavior to preserve. Currently we have support for:
+
+- Single-node and multi-node distributed training
+- Configurable training parameters (epochs, batch size, learning rate, etc.)
+- RHAI Innovation Mini-Trainer backend integration
+
+Here's a quick and minimal way to get started with OSFT:
+
+```python
+from training_hub import osft
+
+result = osft(
+    model_path="/path/to/model",
+    data_path="/path/to/data.jsonl", 
+    ckpt_output_dir="/path/to/outputs",
+    unfreeze_rank_ratio=0.25,
+    effective_batch_size=16,
+    max_tokens_per_gpu=2048,
+    max_seq_len=1024,
+    learning_rate=5e-6,
 )
 ```
 
