@@ -48,7 +48,7 @@ class OSFTAlgorithm(Algorithm):
         # checkpointing
         checkpoint_at_epoch: bool | None = None,
         save_final_checkpoint: bool | None = None,
-        
+ 
         # parameters for the training mode
         num_epochs: int | None = None,
 
@@ -215,7 +215,7 @@ class OSFTAlgorithm(Algorithm):
             'use_liger': bool,
             'lr_scheduler': str,
             'warmup_steps': int,
-            'lr_scheduler_kwargs': dict[str, str],
+            'lr_scheduler_kwargs': dict,
             'checkpoint_at_epoch': bool,
             'save_final_checkpoint': bool,
             'num_epochs': int,
@@ -412,7 +412,7 @@ class MiniTrainerOSFTBackend(Backend):
         # if we received unmask then we need to add that
         processing_data_path = data_path
         if unmask_messages:
-            ds = datasets.load_dataset(data_path, split='train')
+            ds = datasets.load_dataset("json", data_files=data_path, split='train')
             ds = ds.map(lambda _: { "unmask": True }) 
             processing_data_path = os.path.join(output_dir, 'intermediate_data.jsonl')
             ds.to_json(processing_data_path)
