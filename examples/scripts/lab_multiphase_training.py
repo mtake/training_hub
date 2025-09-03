@@ -62,8 +62,8 @@ def main():
                        help='Number of nodes (default: 1)')
     parser.add_argument('--node-rank', type=int, default=0,
                        help='Rank of this node (default: 0)')
-    parser.add_argument('--rdzv-id', type=int, default=420,
-                       help='Rendezvous ID (default: 420)')
+    parser.add_argument('--rdzv-id', type=int, default=47,
+                       help='Rendezvous ID (default: 47)')
     parser.add_argument('--rdzv-endpoint', default='0.0.0.0:12345',
                        help='Master node endpoint (default: 0.0.0.0:12345)')
     
