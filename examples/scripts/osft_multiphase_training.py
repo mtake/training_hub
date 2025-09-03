@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-LAB Multi-Phase Training Script with OSFT
+OSFT Multi-Phase Training Script
 
-This script demonstrates how to perform LAB (Large-scale Alignment for chatBots) multi-phase 
-training using the OSFT algorithm. With OSFT, we can execute the two-phase LAB training process
-WITHOUT needing replay buffers:
+This script demonstrates how to perform multi-phase training using the OSFT (Orthogonal Subspace 
+Fine-Tuning) algorithm. With OSFT, we can execute a two-phase training process WITHOUT needing 
+replay buffers:
 
 1. Phase 1 - Knowledge Tuning (Phase07): Training on knowledge-heavy data to build foundational understanding
 2. Phase 2 - Skills Training (Phase10): Training on skills data with a reduced unfreeze_rank_ratio
@@ -13,6 +13,12 @@ WITHOUT needing replay buffers:
 The key innovation with OSFT is that we don't need replay mechanisms - the algorithm naturally
 preserves prior capabilities. We reduce the unfreeze_rank_ratio in Phase 2 to ensure better
 preservation of Phase 1 knowledge while still allowing skill acquisition.
+
+This OSFT Multi-Phase approach provides a superior replacement for traditional LAB (Large-scale 
+Alignment for chatBots) multi-phase training workflows, eliminating the need for complex replay 
+buffers while maintaining capability preservation. While OSFT may achieve slightly lower task-specific 
+performance compared to full SFT (since only a fraction of parameters are updated), it preserves 
+performance on other tasks that SFT would degrade.
 
 Example: If Phase 1 uses unfreeze_rank_ratio=0.3, Phase 2 might use 0.25 or 0.2
 """
@@ -56,22 +62,22 @@ def find_most_recent_checkpoint(output_dir):
 
 
 def main():
-    """Main function to execute LAB multi-phase training with OSFT."""
+    """Main function to execute OSFT multi-phase training."""
     
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description='LAB Multi-Phase Training Script with OSFT')
+    parser = argparse.ArgumentParser(description='OSFT Multi-Phase Training Script')
     parser.add_argument('--base-model-path', required=True, 
                        help='Path to the base model (e.g., Llama-3.1-8B-Instruct)')
     parser.add_argument('--phase07-data-path', required=True,
                        help='Path to knowledge data for Phase07 (JSONL format)')
     parser.add_argument('--phase10-data-path', required=True,
-                       help='Path to skills data for Phase10 (JSONL format, no replay needed!)')
+                       help='Path to skills data for Phase10 (JSONL format, no replay needed - replaces LAB workflow!)')
     parser.add_argument('--ckpt-output-base-dir', required=True,
                        help='Base directory for checkpoint outputs')
     parser.add_argument('--data-output-dir', default='/dev/shm',
                        help='Directory for data processing (default: /dev/shm)')
-    parser.add_argument('--experiment-prefix', default='lab_osft_multiphase',
-                       help='Prefix for experiment names (default: lab_osft_multiphase)')
+    parser.add_argument('--experiment-prefix', default='osft_multiphase',
+                       help='Prefix for experiment names (default: osft_multiphase)')
     
     # OSFT-specific parameters
     parser.add_argument('--phase07-unfreeze-ratio', type=float, default=0.3,
@@ -156,7 +162,7 @@ def main():
     # Calculate Phase10 unfreeze ratio
     phase10_unfreeze_ratio = max(0.1, args.phase07_unfreeze_ratio - args.phase10_unfreeze_reduction)
     
-    print("🚀 LAB Multi-Phase Training with OSFT")
+    print("🚀 OSFT Multi-Phase Training")
     print("=" * 50)
     print(f"Experiment prefix: {args.experiment_prefix}")
     print(f"Base model: {args.base_model_path}")
@@ -187,6 +193,7 @@ def main():
     print()
     print("🎯 Key Advantage: No replay buffers needed with OSFT!")
     print("   The algorithm naturally preserves prior knowledge.")
+    print("   This approach replaces traditional LAB multi-phase workflows.")
     print()
     
     # Phase07: Knowledge Tuning
@@ -340,7 +347,7 @@ def main():
     
     print()
     print("=" * 50)
-    print("🎉 LAB Multi-Phase OSFT Training Complete!")
+    print("🎉 OSFT Multi-Phase Training Complete!")
     print("=" * 50)
     print(f"Total training time: {total_duration/3600:.2f} hours")
     print(f"Final model checkpoint: {phase10_checkpoint}")
@@ -351,6 +358,7 @@ def main():
     print(f"  • No replay buffers needed!")
     print(f"  • Data processing directory: {args.data_output_dir}")
     print(f"  • Model preserves all capabilities through OSFT")
+    print(f"  • Successfully replaces traditional LAB multi-phase workflows")
     print()
     print("🚀 Your model now has:")
     print("  1. Original base model capabilities (preserved)")
@@ -361,7 +369,9 @@ def main():
     print("Next steps:")
     print("  1. Test the model on evaluation sets")
     print("  2. Compare with base model to verify improvements")
-    print("  3. Deploy with confidence - no regression expected!")
+    print("  3. Compare with LAB multi-phase results (expect similar task performance)")
+    print("     Note: OSFT preserves other capabilities that SFT would degrade")
+    print("  4. Deploy with confidence - no capability regression expected!")
 
 
 if __name__ == "__main__":
