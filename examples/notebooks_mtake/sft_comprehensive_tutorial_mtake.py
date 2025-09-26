@@ -119,6 +119,7 @@ qwen_example = {
     "example_max_seq_len": 16384,
     "example_batch_size": 128,
     "example_learning_rate": 1e-5,
+    "notes": "Excellent for domain adaptation while preserving multilingual capabilities",
 }
 
 # Example 2: Llama 3.1 8B Instruct
@@ -129,6 +130,7 @@ llama_example = {
     "example_max_seq_len": 16384,
     "example_batch_size": 128,
     "example_learning_rate": 1e-5,
+    "notes": "Ideal for adding specialized knowledge without losing general capabilities",
 }
 
 # Example 3: Phi 4 Mini
@@ -139,6 +141,7 @@ phi_example = {
     "example_max_seq_len": 8192,
     "example_batch_size": 64,
     "example_learning_rate": 5e-6,
+    "notes": "Efficient for edge deployment with continual adaptation",
 }
 
 # Example 4: Generic 7B Base Model
@@ -149,6 +152,7 @@ generic_7b_example = {
     "example_max_seq_len": 20000,
     "example_batch_size": 256,
     "example_learning_rate": 2e-5,
+    "notes": "Good baseline for most 7B instruction-tuned models",
 }
 
 # Example 5: Smaller Model (1B-3B)
@@ -159,6 +163,7 @@ small_model_example = {
     "example_max_seq_len": 32768,
     "example_batch_size": 512,
     "example_learning_rate": 3e-5,
+    "notes": "Smaller models can handle more aggressive adaptation",
 }
 
 # @@@ahoaho XXX
@@ -171,6 +176,7 @@ granite_example = {
     "example_max_seq_len": 20000,
     "example_batch_size": 256,
     "example_learning_rate": 2e-5,
+    "notes": "Excellent for domain adaptation while preserving multilingual capabilities",
 }
 
 # =============================================================================
@@ -188,8 +194,7 @@ print(f"Example Max Tokens per GPU: {selected_example['example_max_tokens_per_gp
 print(f"Example Max Sequence Length: {selected_example['example_max_seq_len']:,}")
 print(f"Example Batch Size: {selected_example['example_batch_size']:,}")
 print(f"Example Learning Rate: {selected_example['example_learning_rate']}")
-# @@@ahoaho FIXME
-# print(f"Notes: {selected_example['notes']}")
+print(f"Notes: {selected_example['notes']}")
 print("\n💡 Remember: These are example configurations. Adjust based on your hardware and requirements.")
 
 # %% [markdown]
