@@ -188,7 +188,8 @@ print(f"Example Max Tokens per GPU: {selected_example['example_max_tokens_per_gp
 print(f"Example Max Sequence Length: {selected_example['example_max_seq_len']:,}")
 print(f"Example Batch Size: {selected_example['example_batch_size']:,}")
 print(f"Example Learning Rate: {selected_example['example_learning_rate']}")
-print(f"Notes: {selected_example['notes']}")
+# @@@ahoaho FIXME
+# print(f"Notes: {selected_example['notes']}")
 print("\n💡 Remember: These are example configurations. Adjust based on your hardware and requirements.")
 
 # %% [markdown]
