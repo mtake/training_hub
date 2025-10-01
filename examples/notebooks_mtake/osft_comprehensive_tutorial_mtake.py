@@ -502,13 +502,13 @@ distributed_configs = {
         "description": "Single node with 8 GPUs"
     },
     # @@@ahoaho XX
-    "single_node_allgpu": {
+    "single_node_all_gpu": {
         "nproc_per_node": nproc_per_node,
         "nnodes": 1,
         "node_rank": 0,
         "rdzv_id": 100,
         "rdzv_endpoint": "127.0.0.1:29500",
-        "description": "Single node with 8 GPUs"
+        "description": "Single node with all GPUs"
     },
     "multi_node_master": {
         "nproc_per_node": 8,
@@ -532,7 +532,7 @@ distributed_configs = {
 # Select your distributed configuration
 # @@@ahoaho XXX
 # selected_distributed = "single_node_8gpu"  # Change this to match your setup
-selected_distributed = "single_node_allgpu"  # Change this to match your setup
+selected_distributed = "single_node_all_gpu"  # Change this to match your setup
 dist_config = distributed_configs[selected_distributed]
 
 # Extract distributed training parameters
