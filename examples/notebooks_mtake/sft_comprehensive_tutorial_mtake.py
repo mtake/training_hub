@@ -279,7 +279,9 @@ print()
 # DATA AND PROCESSING PARAMETERS
 # =============================================================================
 
-data_output_dir = "/dev/shm"  # Directory to save processed data
+# @@@ahoaho XXX
+# data_output_dir = "/dev/shm"  # Directory to save processed data
+data_output_dir = f"/dev/shm/{full_experiment_name}"  # Directory to save processed data
 warmup_steps = 100  # Number of warmup steps
 
 print("💾 Data Processing Parameters:")

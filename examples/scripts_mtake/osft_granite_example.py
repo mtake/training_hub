@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """
-SFT Training Example: Granite 3.3 8B Instruct
+OSFT Training Example: Granite 3.3 8B Instruct
 
-This script demonstrates SFT training with Granite 3.3 8B Instruct model
+This script demonstrates OSFT (Orthogonal Subspace Fine-Tuning) training with Granite 3.3 8B Instruct model
 using a single-node, multi-GPU setup with training_hub.
 
+OSFT allows continual training without catastrophic forgetting, making it ideal for:
+- Adapting instruction-tuned models to new domains
+- Adding new knowledge without losing existing capabilities
+- Fine-tuning without replay buffers or supplementary datasets
+
 Example usage:
-    python sft_granite_example.py \\
+    python osft_granite_example.py \\
         --data-path /path/to/data.jsonl \\
         --ckpt-output-dir /path/to/checkpoints
 """
@@ -16,9 +21,11 @@ import sys
 import time
 from datetime import datetime
 import argparse
+import glob
+import json
 import torch
 
-from training_hub import sft
+from training_hub import osft
 
 
 # Detect GPUs
@@ -68,7 +75,7 @@ data_name = "teigaku-genzei-ibm-v6"  # 16751 samples
 _data_name = f"_{data_name}" if data_name is not None and len(data_name) > 0 else ""
 
 # =============================================================================
-# COMPLETE SFT PARAMETER CONFIGURATION
+# COMPLETE OSFT PARAMETER CONFIGURATION
 # =============================================================================
 
 # Experiment identification
@@ -82,8 +89,35 @@ full_experiment_name = f"{experiment_name}_{default_model_basename}{_data_name}_
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
 default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save checkpoints
 
+
+def find_most_recent_checkpoint(output_dir):
+    """
+    Find the most recent checkpoint in the training output directory.
+    
+    Args:
+        output_dir (str): Training output directory containing hf_format/ subdirectory
+        
+    Returns:
+        str: Path to the most recent checkpoint
+        
+    Raises:
+        ValueError: If no checkpoints are found
+    """
+    # Get all checkpoint directories under hf_format
+    checkpoint_pattern = os.path.join(output_dir, "hf_format", "samples_*.0")
+    checkpoint_dirs = glob.glob(checkpoint_pattern)
+    
+    if not checkpoint_dirs:
+        raise ValueError(f"No checkpoints found in {os.path.join(output_dir, 'hf_format')}")
+    
+    # Find the most recently created checkpoint
+    most_recent_checkpoint = max(checkpoint_dirs, key=os.path.getctime)
+    
+    return most_recent_checkpoint
+
+
 def main():
-    parser = argparse.ArgumentParser(description=f'SFT Training Example: {default_model_name}')
+    parser = argparse.ArgumentParser(description=f'OSFT Training Example: {default_model_name}')
     
     # Optional overrides
     parser.add_argument('--data-path', default=default_data_path,
@@ -94,37 +128,50 @@ def main():
                        help=f'Model path or HuggingFace name (default: {default_model_path})')
     parser.add_argument('--num-epochs', type=int, default=3,
                        help='Number of epochs (default: 3)')
+    parser.add_argument('--unfreeze-rank-ratio', type=float, default=0.2,
+                       help='Unfreeze rank ratio for OSFT (0.0-1.0, default: 0.2)')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
                        help=f'Number of GPUs (default: {default_nproc_per_node})')
+    parser.add_argument('--learning-rate', type=float, default=default_learning_rate,
+                       help=f'Learning rate for training (default: {default_learning_rate})')
+    parser.add_argument('--unmask-messages', action='store_true', default=False,
+                       help='Unmask messages during training (default: False)')
     
     args = parser.parse_args()
     
-    # Granite 3.3 8B Instruct configuration
-    print(f"🚀 SFT Training: {default_model_name}")
+    # Granite 3.3 8B Instruct OSFT configuration
+    print(f"🚀 OSFT Training: {default_model_name}")
     print("=" * 50)
     print(f"Model: {args.model_path}")
     print(f"Data: {args.data_path}")
     print(f"Output: {args.ckpt_output_dir}")
     print(f"GPUs: {args.nproc_per_node}")
+    print(f"Unfreeze Rank Ratio: {args.unfreeze_rank_ratio}")
     print(f"Max tokens per GPU: {args.max_tokens_per_gpu:,}")
     print()
-
-    # Training configuration optimized for Granite 3.3 8B Instruct
+    print("📝 Note: OSFT enables continual learning without replay buffers")
+    print("    The model will adapt to new data while preserving existing capabilities")
+    print()
+    
+    # Training configuration optimized for Granite 3.3 8B Instruct with OSFT
     start_time = time.time()
     
     try:
-        result = sft(
+        result = osft(
             # Model and data
             model_path=args.model_path,
             data_path=args.data_path,
             ckpt_output_dir=args.ckpt_output_dir,
             
+            # OSFT-specific parameters
+            unfreeze_rank_ratio=args.unfreeze_rank_ratio,  # Controls preservation vs adaptation
+            
             # Training parameters optimized for Granite 3.3 8B Instruct
             num_epochs=args.num_epochs,
-            effective_batch_size=default_batch_size,
-            learning_rate=default_learning_rate,
+            effective_batch_size=default_batch_size,            # Smaller batch for efficient model
+            learning_rate=args.learning_rate,                # Very low LR for smaller but dense model
             max_seq_len=default_max_seq_len,
             max_tokens_per_gpu=args.max_tokens_per_gpu,
             
@@ -132,12 +179,17 @@ def main():
             # @@@ahoaho XXX
             # data_output_dir="/dev/shm",        # Use RAM disk for speed
             data_output_dir=f"/dev/shm/{full_experiment_name}",        # Use RAM disk for speed
-            warmup_steps=100,
-            save_samples=0,                    # 0 disables sample-based checkpointing, use epoch-based only
+            warmup_steps=0,
+            unmask_messages=args.unmask_messages,
+            
+            # Optimization
+            use_liger=True,                     # Enable Liger kernels for efficiency
+            seed=42,
+            lr_scheduler='cosine',              # Cosine scheduler works well with OSFT
             
             # Checkpointing
             checkpoint_at_epoch=True,
-            accelerate_full_state_at_epoch=True,  # Enable for auto-resumption (larger checkpoints)
+            save_final_checkpoint=True,
             
             # Single-node multi-GPU setup
             nproc_per_node=args.nproc_per_node,
@@ -150,10 +202,16 @@ def main():
         end_time = time.time()
         duration = end_time - start_time
         
+        most_recent_checkpoint = find_most_recent_checkpoint(args.ckpt_output_dir)
+        
         print("=" * 50)
-        print("✅ Training completed successfully!")
+        print("✅ OSFT Training completed successfully!")
         print(f"⏱️  Duration: {duration/3600:.2f} hours")
-        print(f"📁 Checkpoints: {args.ckpt_output_dir}/hf_format/")
+        print(f"📁 Checkpoints: {args.ckpt_output_dir}/hf_format")
+        print(f"   Most recent checkpoint: {most_recent_checkpoint}")
+        print()
+        print("💡 Your model has been adapted to the new domain while preserving")
+        print("   its original instruction-following capabilities!")
         
     except Exception as e:
         end_time = time.time()
@@ -163,9 +221,12 @@ def main():
         print(f"❌ Training failed after {duration/60:.1f} minutes")
         print(f"Error: {e}")
         print()
-        print("💡 Try reducing --max-tokens-per-gpu if you see OOM errors")
+        print("💡 Troubleshooting tips:")
+        print("   - Reduce --max-tokens-per-gpu if you see OOM errors")
+        print("   - For domain adaptation, try --unfreeze-rank-ratio between 0.2-0.4")
         sys.exit(1)
 
 
 if __name__ == "__main__":
     main()
+
