@@ -403,8 +403,8 @@ print()
 # TRAINING HYPERPARAMETERS
 # =============================================================================
 
-# num_epochs = 3  # Number of training epochs
-num_epochs = 1  # Number of training epochs
+num_epochs = 3  # Number of training epochs
+# num_epochs = 1  # Number of training epochs
 seed = 42  # Random seed for reproducibility
 lr_scheduler = "cosine"  # Learning rate scheduler
 lr_scheduler_kwargs = {}  # Scheduler parameters
