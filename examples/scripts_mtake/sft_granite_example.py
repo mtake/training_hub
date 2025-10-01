@@ -101,6 +101,8 @@ def main():
     
     args = parser.parse_args()
     
+    assert args.nproc_per_node <= default_nproc_per_node, f"NPROC_PER_NODE must be smaller than or equal to {default_nproc_per_node}"
+
     # Granite 3.3 8B Instruct configuration
     print(f"🚀 SFT Training: {default_model_name}")
     print("=" * 50)
