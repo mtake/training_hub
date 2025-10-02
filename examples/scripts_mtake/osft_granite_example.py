@@ -34,21 +34,34 @@ default_nproc_per_node = torch.cuda.device_count()
 
 ## Model Configuration Examples
 
+# @@@ahoaho XXX
+# granite_example = {
+#     "model_name": "Granite 3.3 8B Instruct",
+#     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
+#     "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+#     # The following values are taken from https://github.com/instructlab/training/blob/bfd0d73b42e4b150543eda22b5497718122cd771/examples/01_building_a_reasoning_model.ipynb
+#     "example_max_tokens_per_gpu": 30000,
+#     "example_max_seq_len": 20000,
+#     "example_batch_size": 256,
+#     "example_learning_rate": 2e-5,
+#     "notes": "Excellent for domain adaptation while preserving multilingual capabilities",
+# }
 granite_example = {
     "model_name": "Granite 3.3 8B Instruct",
     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
-    # The following values are taken from https://github.com/instructlab/training/blob/bfd0d73b42e4b150543eda22b5497718122cd771/examples/01_building_a_reasoning_model.ipynb
-    "example_max_tokens_per_gpu": 30000,
-    "example_max_seq_len": 20000,
-    "example_batch_size": 256,
-    "example_learning_rate": 2e-5,
-    "notes": "Excellent for domain adaptation while preserving multilingual capabilities",
+    "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    "example_max_tokens_per_gpu": 10000,
+    "example_max_seq_len": 4096,
+    "example_batch_size": 128,
+    "example_learning_rate": 5e-6,
+    "notes": "Good baseline for most 7B instruction-tuned models",
 }
 
 selected_example = granite_example  # Change this to your preferred example
 
 default_model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
+default_unfreeze_rank_ratio = selected_example["example_unfreeze_rank_ratio"]
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
@@ -131,8 +144,8 @@ def main():
                        help=f'Model path or HuggingFace name (default: {default_model_path})')
     parser.add_argument('--num-epochs', type=int, default=3,
                        help='Number of epochs (default: 3)')
-    parser.add_argument('--unfreeze-rank-ratio', type=float, default=0.2,
-                       help='Unfreeze rank ratio for OSFT (0.0-1.0, default: 0.2)')
+    parser.add_argument('--unfreeze-rank-ratio', type=float, default=default_unfreeze_rank_ratio,
+                       help=f'Unfreeze rank ratio for OSFT (0.0-1.0, default: {default_unfreeze_rank_ratio})')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
