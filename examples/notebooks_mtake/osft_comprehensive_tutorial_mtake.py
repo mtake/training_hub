@@ -437,8 +437,8 @@ print()
 # =============================================================================
 
 # @@@ahoaho XXX
-# data_output_dir = "/dev/shm/osft_data"  # Directory for processed data (RAM disk for speed)
-data_output_dir = f"/dev/shm/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
+# data_output_dir = f"data/{full_experiment_name}"  # Directory for processed data
+data_output_dir = f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 use_processed_dataset = False  # Whether data is pre-processed
 unmask_messages = False  # Whether to unmask all messages for pretraining-style learning
 
