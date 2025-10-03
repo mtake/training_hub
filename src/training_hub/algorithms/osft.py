@@ -58,10 +58,10 @@ class OSFTAlgorithm(Algorithm):
         data_output_dir: str | None = None,
 
         # Torchrun parameters for multi-node support
-        nproc_per_node: int | None = None,
+        nproc_per_node: str | None = None,
         nnodes: int | None = None,
         node_rank: int | None = None,
-        rdzv_id: int | None = None,
+        rdzv_id: str | None = None,
         rdzv_endpoint: str | None = None,
         **kwargs,
     ) -> any:
@@ -121,10 +121,10 @@ class OSFTAlgorithm(Algorithm):
                 Directory where outputs from data processing will be saved such as intermediate
                 files. When not provided, it defaults to `_internal_data_processing` under the
                 `ckpt_output_dir`.
-            nproc_per_node (int): Number of processes (GPUs) per node for distributed training.
+            nproc_per_node (str): Number of processes (GPUs) per node for distributed training.
             nnodes (int): Total number of nodes for distributed training.
             node_rank (int): Rank of this node (0 to nnodes-1) for distributed training. 
-            rdzv_id (int): Unique job ID for rendezvous in distributed training.
+            rdzv_id (str): Unique job ID for rendezvous in distributed training.
             rdzv_endpoint (str): Master node endpoint for multi-node training.
             **kwargs: Additional parameters passed to the backend.
 
@@ -222,10 +222,10 @@ class OSFTAlgorithm(Algorithm):
             'use_processed_dataset': bool,
             'unmask_messages': bool,
             'data_output_dir': str,
-            'nproc_per_node': int,
+            'nproc_per_node': str,
             'nnodes': int,
             'node_rank': int,
-            'rdzv_id': int,
+            'rdzv_id': str,
             'rdzv_endpoint': str,
         }
 
@@ -460,10 +460,10 @@ def osft(
     save_final_checkpoint: bool | None = None,
     num_epochs: int | None = None,
     # Torchrun parameters for multi-node support
-    nproc_per_node: int | None = None,
+    nproc_per_node: str | None = None,
     nnodes: int | None = None,
     node_rank: int | None = None,
-    rdzv_id: int | None = None,
+    rdzv_id: str | None = None,
     rdzv_endpoint: str | None = None,
     **kwargs
 ) -> any:
