@@ -28,9 +28,9 @@ class InstructLabTrainingSFTBackend(Backend):
         
         # Set up torchrun arguments with single-node defaults (except nproc_per_node)
         torchrun_defaults = {
-            'nproc_per_node': os.getenv("PET_NPROC_PER_NODE", 1),
-            'nnodes': os.getenv("PET_NNODES", 1),
-            'node_rank': os.getenv("PET_NODE_RANK", os.getenv("RANK", 0)),
+            'nproc_per_node': os.getenv("LOCAL_WORLD_SIZE", os.getenv("PET_NPROC_PER_NODE", "1")),
+            'nnodes': int(os.getenv("WORLD_SIZE", os.getenv("PET_NNODES", "1"))),
+            'node_rank': int(os.getenv("PET_NODE_RANK", os.getenv("RANK", "0"))),
             'rdzv_id': 0,
             'rdzv_endpoint': ""
         }
