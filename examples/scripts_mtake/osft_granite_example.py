@@ -46,6 +46,7 @@ default_nproc_per_node = torch.cuda.device_count()
 #     "example_learning_rate": 2e-5,
 #     "notes": "Excellent for domain adaptation while preserving multilingual capabilities",
 # }
+# Derived from generic_7b_example in examples/notebooks/osft_comprehensive_tutorial.ipynb
 granite_example = {
     "model_name": "Granite 3.3 8B Instruct",
     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
@@ -92,7 +93,7 @@ _data_name = f"_{data_name}" if data_name is not None and len(data_name) > 0 els
 # =============================================================================
 
 # Experiment identification
-experiment_name = "sft_comprehensive_example"
+experiment_name = "osft_granite_example"
 default_model_basename = os.path.basename(default_model_path)
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # @@@ahoaho XXX

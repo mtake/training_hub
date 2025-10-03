@@ -290,6 +290,7 @@ small_model_example = {
 #     "example_learning_rate": 2e-5,
 #     "notes": "Excellent for domain adaptation while preserving multilingual capabilities",
 # }
+# Derived from generic_7b_example
 granite_example = {
     "model_name": "Granite 3.3 8B Instruct",
     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
