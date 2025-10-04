@@ -137,6 +137,8 @@ def main():
                        help=f'Unfreeze rank ratio for OSFT (0.0-1.0, default: {default_unfreeze_rank_ratio})')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
+    parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
+                       help=f'Max sequence length (default: {default_max_seq_len})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
                        help=f'Number of GPUs (default: {default_nproc_per_node})')
     parser.add_argument('--learning-rate', type=float, default=default_learning_rate,
@@ -158,6 +160,7 @@ def main():
     print(f"GPUs: {args.nproc_per_node}")
     print(f"Unfreeze Rank Ratio: {args.unfreeze_rank_ratio}")
     print(f"Max tokens per GPU: {args.max_tokens_per_gpu:,}")
+    print(f"Max sequence length: {args.max_seq_len:,}")
     print()
     print("📝 Note: OSFT enables continual learning without replay buffers")
     print("    The model will adapt to new data while preserving existing capabilities")
@@ -180,7 +183,7 @@ def main():
             num_epochs=args.num_epochs,
             effective_batch_size=default_batch_size,            # Smaller batch for efficient model
             learning_rate=args.learning_rate,                # Very low LR for smaller but dense model
-            max_seq_len=default_max_seq_len,
+            max_seq_len=args.max_seq_len,
             max_tokens_per_gpu=args.max_tokens_per_gpu,
             
             # Data processing

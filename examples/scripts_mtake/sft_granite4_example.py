@@ -100,6 +100,8 @@ def main():
                        help='Number of epochs (default: 3)')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
+    parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
+                       help=f'Max sequence length (default: {default_max_seq_len})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
                        help=f'Number of GPUs (default: {default_nproc_per_node})')
     
@@ -116,6 +118,7 @@ def main():
     print(f"Output: {args.ckpt_output_dir}")
     print(f"GPUs: {args.nproc_per_node}")
     print(f"Max tokens per GPU: {args.max_tokens_per_gpu:,}")
+    print(f"Max sequence length: {args.max_seq_len:,}")
     print()
 
     # Training configuration optimized for Granite-4.0-H-Small
@@ -132,7 +135,7 @@ def main():
             num_epochs=args.num_epochs,
             effective_batch_size=default_batch_size,
             learning_rate=default_learning_rate,
-            max_seq_len=default_max_seq_len,
+            max_seq_len=args.max_seq_len,
             max_tokens_per_gpu=args.max_tokens_per_gpu,
             
             # Data processing
