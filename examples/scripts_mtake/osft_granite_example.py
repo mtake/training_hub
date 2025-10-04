@@ -34,18 +34,6 @@ default_nproc_per_node = torch.cuda.device_count()
 
 ## Model Configuration Examples
 
-# @@@ahoaho XXX
-# granite_example = {
-#     "model_name": "Granite 3.3 8B Instruct",
-#     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
-#     "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
-#     # The following values are taken from https://github.com/instructlab/training/blob/bfd0d73b42e4b150543eda22b5497718122cd771/examples/01_building_a_reasoning_model.ipynb
-#     "example_max_tokens_per_gpu": 30000,
-#     "example_max_seq_len": 20000,
-#     "example_batch_size": 256,
-#     "example_learning_rate": 2e-5,
-#     "notes": "Excellent for domain adaptation while preserving multilingual capabilities",
-# }
 # Derived from generic_7b_example in examples/notebooks/osft_comprehensive_tutorial.ipynb
 granite_example = {
     "model_name": "Granite 3.3 8B Instruct",
