@@ -188,7 +188,9 @@ def main():
             unmask_messages=args.unmask_messages,
             
             # Optimization
-            use_liger=True,                     # Enable Liger kernels for efficiency
+            # @@@ahoaho XXX
+            # use_liger=True,                     # Enable Liger kernels for efficiency
+            use_liger=False,                     # Enable Liger kernels for efficiency. liger-kernel 0.6.2 doesn't support granitemoehybrid
             seed=42,
             lr_scheduler='cosine',              # Cosine scheduler works well with OSFT
             
