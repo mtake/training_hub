@@ -46,6 +46,7 @@ default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
 default_learning_rate = selected_example['example_learning_rate']
+default_num_epochs = 3
 
 ## Data Configuration Examples
 
@@ -96,8 +97,8 @@ def main():
                        help=f'Directory to save checkpoints (default: {default_ckpt_output_dir})')
     parser.add_argument('--model-path', default=default_model_path,
                        help=f'Model path or HuggingFace name (default: {default_model_path})')
-    parser.add_argument('--num-epochs', type=int, default=3,
-                       help='Number of epochs (default: 3)')
+    parser.add_argument('--num-epochs', type=int, default=default_num_epochs,
+                       help=f'Number of epochs (default: {default_num_epochs})')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
     parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
@@ -116,6 +117,7 @@ def main():
     print(f"Model: {args.model_path}")
     print(f"Data: {args.data_path}")
     print(f"Output: {args.ckpt_output_dir}")
+    print(f"Epochs: {args.num_epochs}")
     print(f"GPUs: {args.nproc_per_node}")
     print(f"Max tokens per GPU: {args.max_tokens_per_gpu:,}")
     print(f"Max sequence length: {args.max_seq_len:,}")
