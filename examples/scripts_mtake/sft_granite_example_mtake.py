@@ -40,7 +40,7 @@ granite_example = {
 
 selected_example = granite_example  # Change this to your preferred example
 
-default_model_name = selected_example['model_name']
+model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
@@ -88,7 +88,7 @@ default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save
 data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
 def main():
-    parser = argparse.ArgumentParser(description=f'SFT Training Example: {default_model_name}')
+    parser = argparse.ArgumentParser(description=f'SFT Training Example: {model_name}')
     
     # Optional overrides
     parser.add_argument('--data-path', default=default_data_path,
@@ -98,7 +98,11 @@ def main():
     parser.add_argument('--model-path', default=default_model_path,
                        help=f'Model path or HuggingFace name (default: {default_model_path})')
     parser.add_argument('--num-epochs', type=int, default=default_num_epochs,
-                       help=f'Number of epochs (default: {default_num_epochs})')
+                       help=f'Number of training epochs (default: {default_num_epochs})')
+    parser.add_argument('--batch-size', type=int, default=default_batch_size,
+                       help=f'Effective batch size for training (default: {default_batch_size})')
+    parser.add_argument('--learning-rate', type=float, default=default_learning_rate,
+                       help=f'Learning rate for training (default: {default_learning_rate})')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
     parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
@@ -112,7 +116,7 @@ def main():
     assert args.nproc_per_node >= 4, "NPROC_PER_NODE must be larger than or equal to 4"
 
     # Granite 3.3 8B Instruct configuration
-    print(f"🚀 SFT Training: {default_model_name}")
+    print(f"🚀 SFT Training: {model_name}")
     print("=" * 50)
     print(f"Model: {args.model_path}")
     print(f"Data: {args.data_path}")
@@ -135,8 +139,8 @@ def main():
             
             # Training parameters optimized for Granite 3.3 8B Instruct
             num_epochs=args.num_epochs,
-            effective_batch_size=default_batch_size,
-            learning_rate=default_learning_rate,
+            effective_batch_size=args.batch_size,
+            learning_rate=args.learning_rate,
             max_seq_len=args.max_seq_len,
             max_tokens_per_gpu=args.max_tokens_per_gpu,
             
