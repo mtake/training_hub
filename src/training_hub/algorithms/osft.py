@@ -58,7 +58,7 @@ class OSFTAlgorithm(Algorithm):
         data_output_dir: str | None = None,
 
         # Torchrun parameters for multi-node support
-        nproc_per_node: str | None = None,
+        nproc_per_node: str | int | None = None,
         nnodes: int | None = None,
         node_rank: int | None = None,
         rdzv_id: str | None = None,
@@ -222,7 +222,7 @@ class OSFTAlgorithm(Algorithm):
             'use_processed_dataset': bool,
             'unmask_messages': bool,
             'data_output_dir': str,
-            'nproc_per_node': str,
+            'nproc_per_node': str | int,
             'nnodes': int,
             'node_rank': int,
             'rdzv_id': str,
@@ -460,7 +460,7 @@ def osft(
     save_final_checkpoint: bool | None = None,
     num_epochs: int | None = None,
     # Torchrun parameters for multi-node support
-    nproc_per_node: str | None = None,
+    nproc_per_node: str | int | None = None,
     nnodes: int | None = None,
     node_rank: int | None = None,
     rdzv_id: str | None = None,

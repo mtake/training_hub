@@ -73,10 +73,10 @@ class SFTAlgorithm(Algorithm):
               accelerate_full_state_at_epoch: Optional[bool] = None,
               checkpoint_at_epoch: Optional[bool] = None,
               # Torchrun parameters for multi-node support
-              nproc_per_node: Optional[int] = None,
+              nproc_per_node: Optional[str | int] = None,
               nnodes: Optional[int] = None,
               node_rank: Optional[int] = None,
-              rdzv_id: Optional[int] = None,
+              rdzv_id: Optional[str | int] = None,
               rdzv_endpoint: Optional[str] = None,
               **kwargs) -> Any:
         """Execute SFT training.
@@ -158,10 +158,10 @@ class SFTAlgorithm(Algorithm):
             'warmup_steps': int,
             'accelerate_full_state_at_epoch': bool,
             'checkpoint_at_epoch': bool,
-            'nproc_per_node': int,
+            'nproc_per_node': str | int,
             'nnodes': int,
             'node_rank': int,
-            'rdzv_id': int,
+            'rdzv_id': str | int,
             'rdzv_endpoint': str,
         }
 
@@ -187,10 +187,10 @@ def sft(model_path: str,
         accelerate_full_state_at_epoch: Optional[bool] = None,
         checkpoint_at_epoch: Optional[bool] = None,
         # Torchrun parameters for multi-node support
-        nproc_per_node: Optional[int] = None,
+        nproc_per_node: Optional[str | int] = None,
         nnodes: Optional[int] = None,
         node_rank: Optional[int] = None,
-        rdzv_id: Optional[int] = None,
+        rdzv_id: Optional[str | int] = None,
         rdzv_endpoint: Optional[str] = None,
         **kwargs) -> Any:
     """Convenience function to run SFT training.
