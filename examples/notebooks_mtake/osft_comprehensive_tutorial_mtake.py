@@ -447,7 +447,6 @@ print()
 # DATA PROCESSING PARAMETERS
 # =============================================================================
 
-# @@@ahoaho XXX
 # data_output_dir = f"data/{full_experiment_name}"  # Directory for processed data
 data_output_dir = f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 use_processed_dataset = False  # Whether data is pre-processed

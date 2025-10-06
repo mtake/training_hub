@@ -83,7 +83,6 @@ full_experiment_name = f"{experiment_name}_{default_model_basename}{_data_name}_
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
 default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save checkpoints
 
-# @@@ahoaho XXX
 # data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
 data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
