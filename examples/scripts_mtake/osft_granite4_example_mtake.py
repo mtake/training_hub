@@ -83,11 +83,10 @@ _data_name = f"_{data_name}" if data_name is not None and len(data_name) > 0 els
 
 # Experiment identification
 experiment_name = "osft_granite4_example"
-default_model_basename = os.path.basename(default_model_path)
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # @@@ahoaho XXX
 # full_experiment_name = f"{experiment_name}_{timestamp}"
-full_experiment_name = f"{experiment_name}_{default_model_basename}{_data_name}_{timestamp}"
+full_experiment_name = f"{experiment_name}_{os.path.basename(default_model_path)}{_data_name}_{timestamp}"
 
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
 default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save checkpoints
