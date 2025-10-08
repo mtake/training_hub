@@ -14,6 +14,7 @@ Example usage:
 import os
 import sys
 import time
+import glob
 from datetime import datetime
 import argparse
 import torch
@@ -84,6 +85,33 @@ default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save
 
 # data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
 data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
+
+
+def find_most_recent_checkpoint(output_dir):
+    """
+    Find the most recent checkpoint in the training output directory.
+    
+    Args:
+        output_dir (str): Training output directory containing hf_format/ subdirectory
+        
+    Returns:
+        str: Path to the most recent checkpoint
+        
+    Raises:
+        ValueError: If no checkpoints are found
+    """
+    # Get all checkpoint directories under hf_format
+    checkpoint_pattern = os.path.join(output_dir, "hf_format", "samples_*.0")
+    checkpoint_dirs = glob.glob(checkpoint_pattern)
+    
+    if not checkpoint_dirs:
+        raise ValueError(f"No checkpoints found in {os.path.join(output_dir, 'hf_format')}")
+    
+    # Find the most recently created checkpoint
+    most_recent_checkpoint = max(checkpoint_dirs, key=os.path.getctime)
+    
+    return most_recent_checkpoint
+
 
 def main():
     parser = argparse.ArgumentParser(description=f'SFT Training Example: {model_name}')
@@ -166,7 +194,28 @@ def main():
         print("✅ Training completed successfully!")
         print(f"⏱️  Duration: {duration/3600:.2f} hours")
         print(f"📁 Checkpoints: {args.ckpt_output_dir}/hf_format/")
-        
+
+        # @@@ahoaho XXX
+        most_recent_checkpoint = find_most_recent_checkpoint(args.ckpt_output_dir)
+
+        from interpolator import interpolate_models
+
+        # TODO read from command line
+        trained_model_weight = 0.5
+
+        interp_model_path = interpolate_models(
+            args.model_path,
+            most_recent_checkpoint,
+            trained_model_weight=trained_model_weight,
+            output_model_path=None,
+            torch_dtype="bfloat16",
+        )
+
+        print("=" * 50)
+        print("✅ Interpolation completed successfully!")
+        print(f"📁 SFT model checkpoint: {most_recent_checkpoint}")
+        print(f"📁 Interpolated model checkpoint: {interp_model_path}")
+
     except Exception as e:
         end_time = time.time()
         duration = end_time - start_time
