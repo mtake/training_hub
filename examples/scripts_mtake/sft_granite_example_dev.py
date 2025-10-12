@@ -45,6 +45,7 @@ default_batch_size = selected_example['example_batch_size']
 default_learning_rate = selected_example['example_learning_rate']
 default_num_epochs = 3
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
+default_model_weight = 0.5
 
 # =============================================================================
 # COMPLETE SFT PARAMETER CONFIGURATION
@@ -58,8 +59,6 @@ full_experiment_name = f"{experiment_name}_{timestamp}"
 # data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
 data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
-## Model Interpolation Configuration Example
-default_model_weight = 0.5
 
 # Copied from examples/scripts/osft_continual_learning_example.py
 def find_most_recent_checkpoint(output_dir):
