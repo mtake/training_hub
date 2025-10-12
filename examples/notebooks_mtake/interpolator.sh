@@ -19,11 +19,15 @@ echo "XXX DATETIME ${START_TIME_STR}" | tee -a ${LOGFILE}
 ORIG="ibm-granite/granite-3.3-8b-instruct"
 #TRAINED="experiments/sft_comprehensive_example_granite-3.3-8b-instruct_teigaku-genzei-ibm-v6_20251002_015942/hf_format/samples_50253"
 TRAINED="experiments/osft_comprehensive_example_granite-3.3-8b-instruct_teigaku-genzei-ibm-v6_20251002_015942/hf_format/samples_50253.0"
-INTERPOLATED="${TRAINED}_interp"
 
 MODEL_PATH="${ORIG}"
 TRAINED_MODEL_PATH="${TRAINED}"
 TRAINED_MODEL_WEIGHT=0.5
+if [[ "${TRAINED_MODEL_WEIGHT}" != "0.5" ]]; then
+    INTERPOLATED="${TRAINED}_interp_${TRAINED_MODEL_WEIGHT}"
+else
+    INTERPOLATED="${TRAINED}_interp"
+fi
 OUTPUT_MODEL_PATH="${INTERPOLATED}"
 TORCH_DTYPE="bfloat16"
 
