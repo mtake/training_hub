@@ -86,7 +86,13 @@ default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save
 # data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
 data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
+# =============================================================================
+# MODEL INTERPOLATION PARAMETER
+# =============================================================================
 
+default_model_weight = 0.5
+
+# Copied from examples/scripts/osft_continual_learning_example.py
 def find_most_recent_checkpoint(output_dir):
     """
     Find the most recent checkpoint in the training output directory.
@@ -137,6 +143,9 @@ def main():
                        help=f'Max sequence length (default: {default_max_seq_len})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
                        help=f'Number of GPUs (default: {default_nproc_per_node})')
+    # @@@ahoaho XXX
+    parser.add_argument('--model-weight', type=float, default=default_model_weight,
+                       help=f'Weight for trained model for interpolation (0.0-1.0, default: {default_model_weight})')
     
     args = parser.parse_args()
     
@@ -199,24 +208,17 @@ def main():
 
         # @@@ahoaho XXX
         most_recent_checkpoint = find_most_recent_checkpoint(args.ckpt_output_dir)
+        print(f"📁 Most recent checkpoint: {most_recent_checkpoint}")
 
-        from interpolator import interpolate_models
+        trained_model_weight = args.model_weight
+        if 0.0 < trained_model_weight and trained_model_weight < 1.0:
+            from interpolator import interpolate_models
 
-        # TODO read from command line
-        trained_model_weight = 0.5
+            interp_model_path = interpolate_models(args.model_path, most_recent_checkpoint, trained_model_weight=trained_model_weight)
 
-        interp_model_path = interpolate_models(
-            args.model_path,
-            most_recent_checkpoint,
-            trained_model_weight=trained_model_weight,
-            output_model_path=None,
-            torch_dtype="bfloat16",
-        )
-
-        print("=" * 50)
-        print("✅ Interpolation completed successfully!")
-        print(f"📁 SFT model checkpoint: {most_recent_checkpoint}")
-        print(f"📁 Interpolated model checkpoint: {interp_model_path}")
+            print("=" * 50)
+            print("✅ Interpolation completed successfully!")
+            print(f"📁 Interpolated model checkpoint: {interp_model_path}")
 
     except Exception as e:
         end_time = time.time()
