@@ -23,8 +23,7 @@ from training_hub import sft
 
 
 # Detect GPUs
-assert torch.cuda.is_available()
-default_nproc_per_node = torch.cuda.device_count()
+default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
 
 ## Model Configuration Examples
 
