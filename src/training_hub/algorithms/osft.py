@@ -4,7 +4,7 @@ from dataclasses import fields
 
 import datasets
 from training_hub.algorithms import Algorithm, Backend, AlgorithmRegistry
-from training_hub.utils import format_type_name
+from training_hub.utils import format_type_name, get_torchrun_params
 
 
 class OSFTAlgorithm(Algorithm):
@@ -63,6 +63,8 @@ class OSFTAlgorithm(Algorithm):
         node_rank: int | None = None,
         rdzv_id: str | None = None,
         rdzv_endpoint: str | None = None,
+        master_addr: str | None = None,
+        master_port: str | None = None,
         **kwargs,
     ) -> any:
         """
@@ -126,6 +128,9 @@ class OSFTAlgorithm(Algorithm):
             node_rank (int): Rank of this node (0 to nnodes-1) for distributed training. 
             rdzv_id (str): Unique job ID for rendezvous in distributed training.
             rdzv_endpoint (str): Master node endpoint for multi-node training.
+            master_addr (str): Master node address for distributed training (only used with
+                static rdzv_backend).
+            master_port (str): Master node port for distributed training.
             **kwargs: Additional parameters passed to the backend.
 
         Returns:
@@ -176,6 +181,8 @@ class OSFTAlgorithm(Algorithm):
             'node_rank': node_rank,
             'rdzv_id': rdzv_id,
             'rdzv_endpoint': rdzv_endpoint,
+            'master_addr': master_addr,
+            'master_port': master_port,
         }
 
         # now do validation now that we've set everything up
@@ -227,6 +234,8 @@ class OSFTAlgorithm(Algorithm):
             'node_rank': int,
             'rdzv_id': str,
             'rdzv_endpoint': str,
+            'master_addr': str,
+            'master_port': int,
         }
 
     def _validate_param_types(self, params: dict[str, any]):
@@ -373,8 +382,7 @@ class MiniTrainerOSFTBackend(Backend):
         training_args_pre['osft'] = training_args_pre.get('osft', True)
 
         torchrun_args_pre = {k: v for k, v in algorithm_params.items() if k in torchrun_args_fields and v is not None}
-        # TODO: update this default in mini-trainer
-        torchrun_args_pre['rdzv_endpoint'] = torchrun_args_pre.get('rdzv_endpoint', 'localhost:1738')
+        torchrun_args_pre = get_torchrun_params(torchrun_params=torchrun_args_pre)
 
 
         # now we run training

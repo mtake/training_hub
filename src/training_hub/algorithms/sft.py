@@ -3,6 +3,7 @@ from typing import Any, Dict, Type, Optional
 from instructlab.training import run_training, TorchrunArgs, TrainingArgs
 
 from . import Algorithm, Backend, AlgorithmRegistry
+from training_hub import utils
 
 
 class InstructLabTrainingSFTBackend(Backend):
@@ -27,21 +28,13 @@ class InstructLabTrainingSFTBackend(Backend):
         training_args = TrainingArgs(**training_params)
         
         # Set up torchrun arguments with single-node defaults (except nproc_per_node)
-        torchrun_defaults = {
-            'nproc_per_node': os.getenv("LOCAL_WORLD_SIZE", os.getenv("PET_NPROC_PER_NODE", "1")),
-            'nnodes': int(os.getenv("WORLD_SIZE", os.getenv("PET_NNODES", "1"))),
-            'node_rank': int(os.getenv("PET_NODE_RANK", os.getenv("RANK", "0"))),
-            'rdzv_id': 0,
-            'rdzv_endpoint': ""
-        }
+        final_torchrun_params = utils.get_torchrun_params(training_args.dict())
 
         if torchrun_params:
-            # Merge provided params with defaults
-            final_torchrun_params = {**torchrun_defaults, **torchrun_params}
             torchrun_args = TorchrunArgs(**final_torchrun_params)
         else:
             # Use single-node defaults including nproc_per_node
-            torchrun_args = TorchrunArgs(**torchrun_defaults)
+            torchrun_args = TorchrunArgs(**final_torchrun_params)
         
         # Execute training
         return run_training(
