@@ -111,16 +111,16 @@ def main():
                        help=f'Unfreeze rank ratio for OSFT (0.0-1.0, default: {default_unfreeze_rank_ratio})')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
-    parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
-                       help=f'Max sequence length (default: {default_max_seq_len})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
                        help=f'Number of GPUs (default: {default_nproc_per_node})')
-    parser.add_argument('--batch-size', type=int, default=default_batch_size,
-                       help=f'Effective batch size for training (default: {default_batch_size})')
     parser.add_argument('--learning-rate', type=float, default=default_learning_rate,
                        help=f'Learning rate for training (default: {default_learning_rate})')
     parser.add_argument('--unmask-messages', action='store_true', default=False,
                        help='Unmask messages during training (default: False)')
+    parser.add_argument('--batch-size', type=int, default=default_batch_size,
+                       help=f'Effective batch size for training (default: {default_batch_size})')
+    parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
+                       help=f'Max sequence length (default: {default_max_seq_len})')
     parser.add_argument('--model-weight', type=float, default=default_model_weight,
                        help=f'Weight for trained model for interpolation (0.0-1.0, default: {default_model_weight})')
     
@@ -135,11 +135,14 @@ def main():
     print(f"Model: {args.model_path}")
     print(f"Data: {args.data_path}")
     print(f"Output: {args.ckpt_output_dir}")
-    print(f"Epochs: {args.num_epochs}")
     print(f"GPUs: {args.nproc_per_node}")
     print(f"Unfreeze Rank Ratio: {args.unfreeze_rank_ratio}")
     print(f"Max tokens per GPU: {args.max_tokens_per_gpu:,}")
+    print(f"Epochs: {args.num_epochs}")
+    print(f"Batch size: {args.batch_size}")
+    print(f"Learning rate: {args.learning_rate}")
     print(f"Max sequence length: {args.max_seq_len:,}")
+    print(f"Model weight: {args.model_weight}")
     print()
     print("📝 Note: OSFT enables continual learning without replay buffers")
     print("    The model will adapt to new data while preserving existing capabilities")
