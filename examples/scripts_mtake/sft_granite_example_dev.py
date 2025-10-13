@@ -5,6 +5,8 @@ SFT Training Example: Granite 3.3 8B Instruct
 This script demonstrates SFT training with Granite 3.3 8B Instruct model
 using a single-node, multi-GPU setup with training_hub.
 
+After the training, the script also creates a merged model with linear interpolation.
+
 Example usage:
     python sft_granite_example.py \\
         --data-path /path/to/data.jsonl \\

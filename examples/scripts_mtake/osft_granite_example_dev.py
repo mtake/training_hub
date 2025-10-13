@@ -10,6 +10,8 @@ OSFT allows continual training without catastrophic forgetting, making it ideal 
 - Adding new knowledge without losing existing capabilities
 - Fine-tuning without replay buffers or supplementary datasets
 
+After the training, the script also creates a merged model with linear interpolation.
+
 Example usage:
     python osft_granite_example.py \\
         --data-path /path/to/data.jsonl \\
