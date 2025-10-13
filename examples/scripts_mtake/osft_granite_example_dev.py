@@ -67,7 +67,6 @@ full_experiment_name = f"{experiment_name}_{timestamp}"
 data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
 
-# Copied from examples/scripts/osft_continual_learning_example.py
 def find_most_recent_checkpoint(output_dir):
     """
     Find the most recent checkpoint in the training output directory.
