@@ -1,3 +1,13 @@
+"""
+A simple model interpolation utility.
+
+This takes two checkpoints of the same model, and outputs a merged checkpoint with the linear interpolation.
+
+Example usage:
+    python interpolator.py \\
+        --model-path ibm-granite/granite-3.3-8b-instruct \\
+        --trained-model-path /path/to/checkpoint
+"""
 # Standard
 import argparse
 
@@ -53,31 +63,31 @@ def parse_arguments():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "--model_path",
+        "--model-path",
         type=str,
         required=True,
         help="path to the original model",
     )
     parser.add_argument(
-        "--trained_model_path",
+        "--trained-model-path",
         type=str,
         required=True,
         help="path to the trained model",
     )
     parser.add_argument(
-        "--trained_model_weight",
+        "--trained-model-weight",
         type=float,
         default=0.5,
         help="weight for the trained model",
     )
     parser.add_argument(
-        "--output_model_path",
+        "--output-model-path",
         type=str,
         default=None,
         help="path to the output model",
     )
     parser.add_argument(
-        "--torch_dtype",
+        "--torch-dtype",
         type=str,
         default="bfloat16",
         help="torch dtype",

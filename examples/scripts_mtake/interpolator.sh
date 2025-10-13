@@ -30,7 +30,7 @@ TORCH_DTYPE="bfloat16"
 ENV=""
 #ENV="TOKENIZERS_PARALLELISM=false ${ENV}"
 #ENV="PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True ${ENV}"
-cmd="${ENV}python ${BASENAME}.py --model_path ${MODEL_PATH} --trained_model_path ${TRAINED_MODEL_PATH} --trained_model_weight ${TRAINED_MODEL_WEIGHT} --output_model_path ${OUTPUT_MODEL_PATH} --torch_dtype ${TORCH_DTYPE}"
+cmd="${ENV}python ${BASENAME}.py --model-path ${MODEL_PATH} --trained-model-path ${TRAINED_MODEL_PATH} --trained-model-weight ${TRAINED_MODEL_WEIGHT} --output-model-path ${OUTPUT_MODEL_PATH} --torch-dtype ${TORCH_DTYPE}"
 echo "$cmd" | tee -a ${LOGFILE}
 eval "$cmd" 2>&1 | tee -a ${LOGFILE}
 
