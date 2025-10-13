@@ -22,7 +22,9 @@ import torch
 from training_hub import sft
 
 
-## Model Configuration Example
+# =============================================================================
+# MODEL CONFIGURATION EXAMPLE
+# =============================================================================
 
 # Derived from generic_7b_example in examples/notebooks/sft_comprehensive_tutorial.ipynb
 granite_example = {

@@ -27,7 +27,9 @@ import torch
 from training_hub import osft
 
 
-## Model Configuration Example
+# =============================================================================
+# MODEL CONFIGURATION EXAMPLE FOR OSFT
+# =============================================================================
 
 # Derived from generic_7b_example in examples/notebooks/osft_comprehensive_tutorial.ipynb
 granite_example = {
