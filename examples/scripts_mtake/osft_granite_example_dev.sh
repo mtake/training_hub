@@ -16,11 +16,13 @@ LOGFILE="${BASENAME}-${START_TIME_STR}-${HOSTNAME_S}.log"
 echo "XXX LOGFILE ${LOGFILE}" | tee -a ${LOGFILE}
 echo "XXX DATETIME ${START_TIME_STR}" | tee -a ${LOGFILE}
 
+_DATA_NAME=_test
+
 ENV=""
 ENV="TOKENIZERS_PARALLELISM=false ${ENV}"
 ENV="PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True ${ENV}"
 ENV="NCCL_DEBUG=INFO ${ENV}"
-cmd="${ENV}python ${BASENAME}.py"
+cmd="${ENV}python ${BASENAME}.py --data-path messages_data${_DATA_NAME}.jsonl --ckpt-output-dir experiments/${BASENAME}${_DATA_NAME}_${START_TIME_STR}"
 echo "$cmd" | tee -a ${LOGFILE}
 eval "$cmd" 2>&1 | tee -a ${LOGFILE}
 
