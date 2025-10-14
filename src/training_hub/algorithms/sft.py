@@ -12,7 +12,7 @@ class InstructLabTrainingSFTBackend(Backend):
     def execute_training(self, algorithm_params: Dict[str, Any]) -> Any:
         """Execute SFT training using instructlab-training."""
         # Separate torchrun parameters from training parameters
-        torchrun_keys = {'nproc_per_node', 'nnodes', 'node_rank', 'rdzv_id', 'rdzv_endpoint'}
+        torchrun_keys = {'nproc_per_node', 'nnodes', 'node_rank', 'rdzv_id', 'rdzv_endpoint', 'master_addr', 'master_port'}
         
         # Extract torchrun parameters
         torchrun_params = {k: v for k, v in algorithm_params.items() if k in torchrun_keys}
@@ -28,14 +28,9 @@ class InstructLabTrainingSFTBackend(Backend):
         training_args = TrainingArgs(**training_params)
         
         # Set up torchrun arguments with single-node defaults (except nproc_per_node)
-        final_torchrun_params = utils.get_torchrun_params(training_args.dict())
+        final_torchrun_params = utils.get_torchrun_params(torchrun_params)
+        torchrun_args = TorchrunArgs(**final_torchrun_params)
 
-        if torchrun_params:
-            torchrun_args = TorchrunArgs(**final_torchrun_params)
-        else:
-            # Use single-node defaults including nproc_per_node
-            torchrun_args = TorchrunArgs(**final_torchrun_params)
-        
         # Execute training
         return run_training(
             torch_args=torchrun_args,
@@ -71,6 +66,8 @@ class SFTAlgorithm(Algorithm):
               node_rank: Optional[int] = None,
               rdzv_id: Optional[str | int] = None,
               rdzv_endpoint: Optional[str] = None,
+              master_addr: Optional[str] = None,
+              master_port: Optional[int] = None,
               **kwargs) -> Any:
         """Execute SFT training.
         
@@ -93,6 +90,8 @@ class SFTAlgorithm(Algorithm):
             node_rank: Rank of this node (0 to nnodes-1)
             rdzv_id: Unique job ID for rendezvous
             rdzv_endpoint: Master node endpoint for multi-node training
+            master_addr: Master node address for distributed training
+            master_port: Master node port for distributed training
             **kwargs: Additional parameters passed to the backend
             
         Returns:
@@ -118,6 +117,8 @@ class SFTAlgorithm(Algorithm):
             'node_rank': node_rank,
             'rdzv_id': rdzv_id,
             'rdzv_endpoint': rdzv_endpoint,
+            'master_addr': master_addr,
+            'master_port': master_port,
         }
         
         # Only add non-None parameters (let TrainingArgs handle defaults)
@@ -156,6 +157,8 @@ class SFTAlgorithm(Algorithm):
             'node_rank': int,
             'rdzv_id': str | int,
             'rdzv_endpoint': str,
+            'master_addr': str,
+            'master_port': int,
         }
 
 
@@ -185,6 +188,8 @@ def sft(model_path: str,
         node_rank: Optional[int] = None,
         rdzv_id: Optional[str | int] = None,
         rdzv_endpoint: Optional[str] = None,
+        master_addr: Optional[str] = None,
+        master_port: Optional[int] = None,
         **kwargs) -> Any:
     """Convenience function to run SFT training.
     
@@ -235,6 +240,8 @@ def sft(model_path: str,
         node_rank=node_rank,
         rdzv_id=rdzv_id,
         rdzv_endpoint=rdzv_endpoint,
+        master_addr=master_addr,
+        master_port=master_port,
         **kwargs
     )
 

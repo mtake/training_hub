@@ -1,6 +1,4 @@
 import os
-from curses.ascii import isdigit
-from importlib.metadata import pass_none
 from typing import get_origin, get_args
 
 def format_type_name(tp):
@@ -33,69 +31,177 @@ def format_type_name(tp):
 
 def get_torchrun_params(args: dict):
     """
-    Parse and load PyTorch variables from dict with fallback to environment variables.
-
+    Parse and load PyTorch distributed training parameters with hierarchical precedence.
+    
+    Precedence order: args dict > environment variables > defaults
+    
+    When both rdzv_endpoint and master_addr are set at different precedence levels,
+    the higher precedence value is used with a warning. If both are set at the same
+    level (both in args or both in env), an error is raised.
+    
     Args:
-        args (dict): Dictionary containing PyTorch configuration parameters
-
+        args (dict): Dictionary containing torchrun configuration parameters
+    
     Returns:
-        dict: Dictionary with PyTorch parameters loaded from args or environment
+        dict: Dictionary with validated torchrun parameters
+    
+    Raises:
+        ValueError: If nproc_per_node='auto' but no CUDA GPUs available
+        ValueError: If master_addr and rdzv_endpoint are both set at the same precedence level
+        ValueError: If nproc_per_node has invalid value
     """
-    pytorch_vars = ['nproc_per_node', 'nnodes', 'node_rank', 'rdzv_id', 'rdzv_endpoint', 'master_addr', 'master_port']
+    import torch
+    import warnings
+    
     torchrun_args = {}
-
+    
+    def get_env_value(param_name):
+        """Get environment variable value with fallback logic."""
+        if param_name in ['master_addr', 'master_port']:
+            # try both PET_ and non-PET_ versions
+            return os.getenv(f'PET_{param_name.upper()}') or os.getenv(param_name.upper())
+        return os.getenv(f'PET_{param_name.upper()}')
+    
+    def validate_env_conflict(param_name):
+        """Check if both PET_ and standard env vars are set with conflicting values.
+        
+        Should only be called when we're actually going to use the env value.
+        """
+        if param_name in ['master_addr', 'master_port']:
+            pet_val = os.getenv(f'PET_{param_name.upper()}')
+            standard_val = os.getenv(param_name.upper())
+            
+            if pet_val and standard_val and pet_val != standard_val:
+                raise ValueError(
+                    f"Conflicting environment variables: PET_{param_name.upper()}={pet_val!r} "
+                    f"and {param_name.upper()}={standard_val!r}. These must match if both are set."
+                )
+    
+    def get_param_value(param_name):
+        """Get parameter value following precedence: args > env > None.
+        
+        Returns tuple of (value, source) where source is 'args', 'env', or None.
+        """
+        # check args dict first
+        if param_name in args and args[param_name]:
+            return args[param_name], 'args'
+        # check environment variables
+        env_val = get_env_value(param_name)
+        if env_val:
+            return env_val, 'env'
+        return None, None
+    
     def validate_nproc_per_node(value):
-        """Validate and convert nproc_per_node value."""
-        if isinstance(value, str):
-            if value.lower() == 'auto':
-                return 'gpu'
-            elif value.lower() == 'gpu':
-                return 'gpu'
-            else:
-                try:
-                    return int(value)
-                except ValueError:
-                    raise ValueError(f"nproc_per_node must be 'auto', 'gpu', or an integer, got: {value}")
-        elif isinstance(value, int):
+        """Validate and normalize nproc_per_node."""
+        if not isinstance(value, (int, str)):
+            raise ValueError(f"nproc_per_node must be 'auto', 'gpu', or an integer, got type {type(value).__name__}")
+        if isinstance(value, int):
             return value
-        else:
-            raise ValueError(f"nproc_per_node must be 'auto', 'gpu', or an integer, got: {value}")
+        
+        value_lower = value.lower().strip()
+        if value_lower not in ['auto', 'gpu'] and not value_lower.isdigit():
+            raise ValueError(f"nproc_per_node must be 'auto', 'gpu', or an integer, got: {value!r}")
+        if value_lower.isdigit():
+            return int(value_lower)
+        elif value_lower == 'gpu':
+            return 'gpu'
 
-    def get_env_var_name(var_name):
-        """Get environment variable name based on PyTorch convention."""
-        return var_name.upper() if var_name in ['master_addr', 'master_port'] else f"PET_{var_name.upper()}"
-
-    for var_name in pytorch_vars:
-        # Try args dict first
-        if var_name in args and args[var_name] is not None and args[var_name] != "":
-            value = args[var_name]
-            if var_name == 'nproc_per_node':
-                torchrun_args[var_name] = validate_nproc_per_node(value)
-            elif var_name in ['nnodes', 'node_rank', 'rdzv_id', 'master_port']:
-                torchrun_args[var_name] = int(value) if isinstance(value, (str, int)) else value
-            else:
-                torchrun_args[var_name] = value
+        # otherwise just handle auto logic
+        # convert 'auto' to 'gpu' if CUDA is available
+        if torch.cuda.is_available():
+            return 'gpu'
         else:
-            # Fallback to environment variable
-            env_value = os.getenv(get_env_var_name(var_name))
-            if env_value is not None:
-                if var_name == 'nproc_per_node':
-                    torchrun_args[var_name] = validate_nproc_per_node(env_value)
-                elif var_name in ['nnodes', 'node_rank', 'rdzv_id', 'master_port']:
-                    try:
-                        torchrun_args[var_name] = int(env_value)
-                    except ValueError:
-                        torchrun_args[var_name] = env_value
+            raise ValueError("nproc_per_node='auto' requires CUDA GPUs, but none are available")
+        
+    # process nproc_per_node with validation
+    nproc_val, _ = get_param_value('nproc_per_node')
+    torchrun_args['nproc_per_node'] = validate_nproc_per_node(nproc_val) if nproc_val else 1
+    
+    # process integer parameters with defaults
+    int_params_with_defaults = {
+        'nnodes': 1,
+        'node_rank': 0,
+    }
+    for param, default in int_params_with_defaults.items():
+        value, _ = get_param_value(param)
+        torchrun_args[param] = int(value) if value else default
+    
+    
+    # process rdzv_id (can be str or int)
+    rdzv_id_val, _ = get_param_value('rdzv_id')
+    torchrun_args['rdzv_id'] = rdzv_id_val if rdzv_id_val else 0
+    
+    def get_param_reference(param_name, source):
+        """Format parameter reference based on source (args vs env)."""
+        if source == 'args':
+            return f"'{param_name}' (from args)"
+        elif source == 'env':
+            # show the actual env var name
+            if param_name in ['master_addr', 'master_port']:
+                pet_var = f'PET_{param_name.upper()}'
+                std_var = param_name.upper()
+                # check which one is actually set
+                if os.getenv(pet_var):
+                    return f"{pet_var}"
                 else:
-                    torchrun_args[var_name] = env_value
+                    return f"{std_var}"
             else:
-                # Set defaults
-                defaults = {'nnodes': 1, 'rdzv_id': 0}
-                torchrun_args[var_name] = defaults.get(var_name, "")
+                return f"PET_{param_name.upper()}"
+        return param_name
+    
+    # process mutually exclusive string parameters with precedence handling
+    master_addr_val, master_addr_source = get_param_value('master_addr')
+    rdzv_endpoint_val, rdzv_endpoint_source = get_param_value('rdzv_endpoint')
 
-    # Validate mutually exclusive parameters
-    if (torchrun_args.get('rdzv_endpoint', '') != "" and
-        (torchrun_args.get('master_addr', '') != "" or torchrun_args.get('master_port', '') != "")):
-        raise ValueError("Cannot specify both rdzv_endpoint and master_addr/master_port. These are mutually exclusive parameters.")
+    # Here, when both of these are set, we basically want to either error out or 
+    # set the one with lower precedence to None
+    if master_addr_val and rdzv_endpoint_val:
+        master_addr_ref = get_param_reference('master_addr', master_addr_source)
+        rdzv_endpoint_ref = get_param_reference('rdzv_endpoint', rdzv_endpoint_source)
+        
+        # both are set - check if they're from the same precedence level
+        if master_addr_source == rdzv_endpoint_source:
+            raise ValueError(
+                f"Cannot specify both {master_addr_ref}={master_addr_val!r} and "
+                f"{rdzv_endpoint_ref}={rdzv_endpoint_val!r} at the same level ({master_addr_source}). "
+                "These parameters are mutually exclusive."
+            )
+        # different precedence levels - use the higher precedence one with a warning
+        if master_addr_source == 'args':
+            warnings.warn(
+                f"Both {master_addr_ref}={master_addr_val!r} and {rdzv_endpoint_ref}={rdzv_endpoint_val!r} are set. "
+                f"Using {master_addr_ref} due to higher precedence. Ignoring {rdzv_endpoint_ref}.",
+                UserWarning
+            )
+            rdzv_endpoint_val = None
+
+        else:  # rdzv_endpoint_source == 'args'
+            warnings.warn(
+                f"Both {rdzv_endpoint_ref}={rdzv_endpoint_val!r} and {master_addr_ref}={master_addr_val!r} are set. "
+                f"Using {rdzv_endpoint_ref} due to higher precedence. Ignoring {master_addr_ref}.",
+                UserWarning
+            )
+            master_addr_val = None
+
+    # no conflict, add whichever is set
+    # It may also be possible for neither to be set, in which case we want the 
+    # library/torchrun to figure out what to do
+    if master_addr_val:
+        # validate env conflicts only when we're actually using master_addr
+        if master_addr_source == 'env':
+            validate_env_conflict('master_addr')
+        
+        # we only want to set port when master addr is also being set, to avoid
+        # any potential confusion
+        torchrun_args['master_addr'] = master_addr_val
+        master_port_val, master_port_source = get_param_value('master_port')
+        if master_port_val:
+            # validate env conflicts only when we're actually using master_port
+            if master_port_source == 'env':
+                validate_env_conflict('master_port')
+            torchrun_args['master_port'] = int(master_port_val)
+
+    if rdzv_endpoint_val:
+        torchrun_args['rdzv_endpoint'] = rdzv_endpoint_val
 
     return torchrun_args
