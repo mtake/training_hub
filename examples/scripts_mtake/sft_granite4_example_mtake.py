@@ -142,8 +142,8 @@ def main():
     
     args = parser.parse_args()
 
-    if args.nproc_per_node < 4:
-        raise ValueError("NPROC_PER_NODE must be larger than or equal to 4")
+    if args.nproc_per_node < 8:
+        raise ValueError("NPROC_PER_NODE must be larger than or equal to 8")
     
     # Granite-4.0-H-Small configuration
     print(f"🚀 SFT Training: {model_name}")

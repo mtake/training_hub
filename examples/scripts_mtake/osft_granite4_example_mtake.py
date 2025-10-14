@@ -10,6 +10,8 @@ OSFT allows continual training without catastrophic forgetting, making it ideal 
 - Adding new knowledge without losing existing capabilities
 - Fine-tuning without replay buffers or supplementary datasets
 
+After the training, the script also creates a merged model with linear interpolation.
+
 Example usage:
     python osft_granite4_example.py \\
         --data-path /path/to/data.jsonl \\
@@ -22,16 +24,14 @@ import time
 from datetime import datetime
 import argparse
 import glob
-import json
 import torch
 
 from training_hub import osft
 
 
-# Detect GPUs
-default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
-
-## Model Configuration Examples
+# =============================================================================
+# MODEL CONFIGURATION EXAMPLE FOR OSFT
+# =============================================================================
 
 # Derived from generic_7b_example in examples/notebooks/osft_comprehensive_tutorial.ipynb
 granite4_example = {
@@ -55,8 +55,12 @@ default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
 default_learning_rate = selected_example['example_learning_rate']
 default_num_epochs = 3
+default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
+default_model_weight = 0.5
 
-## Data Configuration Examples
+# =============================================================================
+# DATA CONFIGURATION EXAMPLE
+# =============================================================================
 
 # data_name = "nemotron"
 # data_name = "teigaku-genzei"  # 14187 samples
@@ -83,8 +87,6 @@ _data_name = f"_{data_name}" if data_name is not None and len(data_name) > 0 els
 # Experiment identification
 experiment_name = "osft_granite4_example"
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-# @@@ahoaho XXX
-# full_experiment_name = f"{experiment_name}_{timestamp}"
 full_experiment_name = f"{experiment_name}{_data_name}_{timestamp}"
 
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
@@ -92,6 +94,7 @@ default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save
 
 # data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
 data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
+
 
 def find_most_recent_checkpoint(output_dir):
     """
@@ -135,33 +138,38 @@ def main():
                        help=f'Unfreeze rank ratio for OSFT (0.0-1.0, default: {default_unfreeze_rank_ratio})')
     parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
                        help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
-    parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
-                       help=f'Max sequence length (default: {default_max_seq_len})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
                        help=f'Number of GPUs (default: {default_nproc_per_node})')
-    parser.add_argument('--batch-size', type=int, default=default_batch_size,
-                       help=f'Effective batch size for training (default: {default_batch_size})')
     parser.add_argument('--learning-rate', type=float, default=default_learning_rate,
                        help=f'Learning rate for training (default: {default_learning_rate})')
     parser.add_argument('--unmask-messages', action='store_true', default=False,
                        help='Unmask messages during training (default: False)')
+    parser.add_argument('--batch-size', type=int, default=default_batch_size,
+                       help=f'Effective batch size for training (default: {default_batch_size})')
+    parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
+                       help=f'Max sequence length (default: {default_max_seq_len})')
+    parser.add_argument('--model-weight', type=float, default=default_model_weight,
+                       help=f'Weight for trained model for interpolation (0.0-1.0, default: {default_model_weight})')
     
     args = parser.parse_args()
     
-    assert args.nproc_per_node <= default_nproc_per_node, f"NPROC_PER_NODE must be smaller than or equal to {default_nproc_per_node}"
-    assert args.nproc_per_node >= 8, "NPROC_PER_NODE must be larger than or equal to 8"
-
+    if args.nproc_per_node < 8:
+        raise ValueError("NPROC_PER_NODE must be larger than or equal to 8")
+    
     # Granite-4.0-H-Small OSFT configuration
     print(f"🚀 OSFT Training: {model_name}")
     print("=" * 50)
     print(f"Model: {args.model_path}")
     print(f"Data: {args.data_path}")
     print(f"Output: {args.ckpt_output_dir}")
-    print(f"Epochs: {args.num_epochs}")
     print(f"GPUs: {args.nproc_per_node}")
     print(f"Unfreeze Rank Ratio: {args.unfreeze_rank_ratio}")
     print(f"Max tokens per GPU: {args.max_tokens_per_gpu:,}")
+    print(f"Epochs: {args.num_epochs}")
+    print(f"Batch size: {args.batch_size}")
+    print(f"Learning rate: {args.learning_rate}")
     print(f"Max sequence length: {args.max_seq_len:,}")
+    print(f"Model weight: {args.model_weight}")
     print()
     print("📝 Note: OSFT enables continual learning without replay buffers")
     print("    The model will adapt to new data while preserving existing capabilities")
@@ -193,8 +201,6 @@ def main():
             unmask_messages=args.unmask_messages,
             
             # Optimization
-            # @@@ahoaho XXX
-            # use_liger=True,                     # Enable Liger kernels for efficiency
             use_liger=False,                     # Enable Liger kernels for efficiency. NOTE: liger-kernel 0.6.2 doesn't support granitemoehybrid
             seed=42,
             lr_scheduler='cosine',              # Cosine scheduler works well with OSFT
@@ -225,6 +231,16 @@ def main():
         print("💡 Your model has been adapted to the new domain while preserving")
         print("   its original instruction-following capabilities!")
         
+        trained_model_weight = args.model_weight
+        if 0.0 < trained_model_weight and trained_model_weight < 1.0:
+            from interpolator import interpolate_models
+
+            interp_model_path = interpolate_models(args.model_path, most_recent_checkpoint, trained_model_weight=trained_model_weight)
+
+            print("=" * 50)
+            print("✅ Interpolation completed successfully!")
+            print(f"   Interpolated model checkpoint: {interp_model_path}")
+
     except Exception as e:
         end_time = time.time()
         duration = end_time - start_time
