@@ -31,7 +31,7 @@ def format_type_name(tp):
     return type_str
 
 
-def get_torchrun_params(args: dict):
+def get_torchrun_params(args: dict) -> dict[str, str | int]:
     """
     Parse and load PyTorch distributed training parameters with hierarchical precedence.
     
@@ -104,21 +104,18 @@ def get_torchrun_params(args: dict):
             raise ValueError(f"nproc_per_node must be 'auto', 'gpu', or an integer, got type {type(value).__name__}")
         if isinstance(value, int):
             return value
-        
+
         value_lower = value.lower().strip()
         if value_lower not in ['auto', 'gpu'] and not value_lower.isdigit():
             raise ValueError(f"nproc_per_node must be 'auto', 'gpu', or an integer, got: {value!r}")
         if value_lower.isdigit():
             return int(value_lower)
-        elif value_lower == 'gpu':
-            return 'gpu'
 
-        # otherwise just handle auto logic
-        # convert 'auto' to 'gpu' if CUDA is available
-        if torch.cuda.is_available():
+        # handle 'auto' and 'gpu' - both require CUDA
+        if value_lower in ['auto', 'gpu'] and torch.cuda.is_available():
             return 'gpu'
         else:
-            raise ValueError("nproc_per_node='auto' requires CUDA GPUs, but none are available")
+            raise ValueError(f"nproc_per_node='{value_lower}' requires CUDA GPUs, but none are available")
 
     def get_param_reference(param_name: str, source: str) -> str:
         """Format parameter reference based on source (args vs env)."""
@@ -151,7 +148,13 @@ def get_torchrun_params(args: dict):
         # we know the final values in this case must be integers, so any non-None value here
         # should be castable to `int`.
         value, _ = get_param_value(param)
-        torchrun_args[param] = int(value) if value is not None else default
+        if value is not None:
+            try:
+                torchrun_args[param] = int(value)
+            except (ValueError, TypeError) as e:
+                raise ValueError(f"Invalid value for {param}: {value!r}. Must be an integer.") from e
+        else:
+            torchrun_args[param] = default
     
     
     # rdzv_id will be either a str or int; we just perform some cleanup before
@@ -212,8 +215,13 @@ def get_torchrun_params(args: dict):
             # validate env conflicts only when we're actually using master_port
             if master_port_source == 'env':
                 validate_env_conflict('master_port')
-            torchrun_args['master_port'] = int(master_port_val)
+            try:
+                torchrun_args['master_port'] = int(master_port_val)
+            except (ValueError, TypeError) as e:
+                raise ValueError(f"Invalid value for master_port: {master_port_val!r}. Must be an integer.") from e
 
+    # Note: If neither master_addr nor rdzv_endpoint is set, torchrun will use
+    # its default behavior (typically localhost or other configured defaults)
     elif rdzv_endpoint_val:
         torchrun_args['rdzv_endpoint'] = rdzv_endpoint_val
 

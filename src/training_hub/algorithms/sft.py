@@ -1,4 +1,3 @@
-import os
 from typing import Any, Dict, Type, Optional
 from instructlab.training import run_training, TorchrunArgs, TrainingArgs
 
@@ -213,6 +212,9 @@ def sft(model_path: str,
         node_rank: Rank of this node (0 to nnodes-1) for distributed training
         rdzv_id: Unique job ID for rendezvous in distributed training
         rdzv_endpoint: Master node endpoint for multi-node training
+        master_addr: Master node address for distributed training
+        master_port: Master node port for distributed training
+
         **kwargs: Additional parameters passed to the backend
     
     Returns:
