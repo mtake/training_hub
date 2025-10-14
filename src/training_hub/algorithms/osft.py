@@ -1,5 +1,5 @@
 import os
-from typing import get_origin, get_args, Union
+from typing import Literal, get_origin, get_args, Union
 from dataclasses import fields
 
 import datasets
@@ -58,10 +58,10 @@ class OSFTAlgorithm(Algorithm):
         data_output_dir: str | None = None,
 
         # Torchrun parameters for multi-node support
-        nproc_per_node: str | int | None = None,
+        nproc_per_node: Literal['auto', 'gpu'] | int | None = None,
         nnodes: int | None = None,
         node_rank: int | None = None,
-        rdzv_id: str | None = None,
+        rdzv_id: str | int | None = None,
         rdzv_endpoint: str | None = None,
         master_addr: str | None = None,
         master_port: str | None = None,
@@ -123,14 +123,14 @@ class OSFTAlgorithm(Algorithm):
                 Directory where outputs from data processing will be saved such as intermediate
                 files. When not provided, it defaults to `_internal_data_processing` under the
                 `ckpt_output_dir`.
-            nproc_per_node (str): Number of processes (GPUs) per node for distributed training.
+            nproc_per_node (Literal['auto', 'gpu'] | int): Number of processes (GPUs) per node for distributed training.
             nnodes (int): Total number of nodes for distributed training.
             node_rank (int): Rank of this node (0 to nnodes-1) for distributed training. 
-            rdzv_id (str): Unique job ID for rendezvous in distributed training.
+            rdzv_id (str | int): Unique job ID for rendezvous in distributed training.
             rdzv_endpoint (str): Master node endpoint for multi-node training.
             master_addr (str): Master node address for distributed training (only used with
                 static rdzv_backend).
-            master_port (str): Master node port for distributed training.
+            master_port (int): Master node port for distributed training.
             **kwargs: Additional parameters passed to the backend.
 
         Returns:
@@ -229,10 +229,10 @@ class OSFTAlgorithm(Algorithm):
             'use_processed_dataset': bool,
             'unmask_messages': bool,
             'data_output_dir': str,
-            'nproc_per_node': str | int,
+            'nproc_per_node': Literal['auto', 'gpu'] | int,
             'nnodes': int,
             'node_rank': int,
-            'rdzv_id': str,
+            'rdzv_id': str | int,
             'rdzv_endpoint': str,
             'master_addr': str,
             'master_port': int,
@@ -342,6 +342,16 @@ class MiniTrainerOSFTBackend(Backend):
         # Rename parameters before sending to backend
         algorithm_params = {renames.get(k, k): v for k, v in algorithm_params.items()}
 
+        # Separate parameters into their respective dataclass fields
+        torchrun_args_fields = {f.name for f in fields(TorchrunArgs)}
+        training_args_fields = {f.name for f in fields(TrainingArgs)}
+
+
+        # process this up here so we can exit early
+        torchrun_args_pre = {k: v for k, v in algorithm_params.items() if k in torchrun_args_fields and v is not None}
+        torchrun_args_pre = get_torchrun_params(torchrun_args_pre)
+        torch_args = TorchrunArgs(**torchrun_args_pre)
+
         # We separate this from `ckpt_output_dir` so that we can use `/dev/shm` for low-latency data
         # proceessing. But we do not want to make assumptions about the size of training data or the
         # amount of memory on the host. So by default we write to storage, but expose this as a separate
@@ -362,11 +372,6 @@ class MiniTrainerOSFTBackend(Backend):
             unmask_messages=algorithm_params.get('unmask_messages', False),
         )
 
-
-        # Separate parameters into their respective dataclass fields
-        torchrun_args_fields = {f.name for f in fields(TorchrunArgs)}
-        training_args_fields = {f.name for f in fields(TrainingArgs)}
-
         # adjust arguments to align with the API definition 
         training_args_pre = {k: v for k, v in algorithm_params.items() if k in training_args_fields and v is not None}
         training_args_pre['data_path'] = training_ready_data_path  # replaces raw data path with processed
@@ -381,13 +386,9 @@ class MiniTrainerOSFTBackend(Backend):
         # but default it to True
         training_args_pre['osft'] = training_args_pre.get('osft', True)
 
-        torchrun_args_pre = {k: v for k, v in algorithm_params.items() if k in torchrun_args_fields and v is not None}
-        torchrun_args_pre = get_torchrun_params(torchrun_params=torchrun_args_pre)
-
-
         # now we run training
         return run_training(
-            torch_args=TorchrunArgs(**torchrun_args_pre),
+            torch_args=torch_args,
             train_args=TrainingArgs(**training_args_pre),
         )
     
@@ -468,11 +469,13 @@ def osft(
     save_final_checkpoint: bool | None = None,
     num_epochs: int | None = None,
     # Torchrun parameters for multi-node support
-    nproc_per_node: str | int | None = None,
+    nproc_per_node: Literal['auto', 'gpu'] | int | None = None,
     nnodes: int | None = None,
     node_rank: int | None = None,
-    rdzv_id: str | None = None,
+    rdzv_id: str | int | None = None,
     rdzv_endpoint: str | None = None,
+    master_port: str | None = None,
+    master_addr: str | None = None,
     **kwargs
 ) -> any:
     from . import create_algorithm
@@ -504,5 +507,7 @@ def osft(
         node_rank=node_rank,
         rdzv_id=rdzv_id,
         rdzv_endpoint=rdzv_endpoint,
+        master_port=master_port,
+        master_addr=master_addr,
         **kwargs
     )
