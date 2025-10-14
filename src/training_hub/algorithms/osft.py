@@ -64,7 +64,7 @@ class OSFTAlgorithm(Algorithm):
         rdzv_id: str | int | None = None,
         rdzv_endpoint: str | None = None,
         master_addr: str | None = None,
-        master_port: str | None = None,
+        master_port: int | None = None,
         **kwargs,
     ) -> any:
         """
@@ -474,7 +474,7 @@ def osft(
     node_rank: int | None = None,
     rdzv_id: str | int | None = None,
     rdzv_endpoint: str | None = None,
-    master_port: str | None = None,
+    master_port: int | None = None,
     master_addr: str | None = None,
     **kwargs
 ) -> any:

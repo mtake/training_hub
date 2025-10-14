@@ -1,5 +1,7 @@
 import os
-from typing import get_origin, get_args
+from typing import Literal, get_origin, get_args
+import torch
+import warnings
 
 def format_type_name(tp):
     # Handle None
@@ -50,9 +52,6 @@ def get_torchrun_params(args: dict):
         ValueError: If master_addr and rdzv_endpoint are both set at the same precedence level
         ValueError: If nproc_per_node has invalid value
     """
-    import torch
-    import warnings
-    
     torchrun_args = {}
     
     def get_env_value(param_name):
@@ -77,21 +76,29 @@ def get_torchrun_params(args: dict):
                     f"and {param_name.upper()}={standard_val!r}. These must match if both are set."
                 )
     
-    def get_param_value(param_name):
-        """Get parameter value following precedence: args > env > None.
+    def get_param_value(param_name: str) -> tuple[str | int | None, Literal['args', 'env', None]]:
+        """
+        Get parameter value following precedence: args > env > None.
+        
+        The only valid types which torchrun accepts are str and int, so this
+        function will at most return str, int, or None.
         
         Returns tuple of (value, source) where source is 'args', 'env', or None.
+        
+        Args:
+            param_name: Name of parameter to retrieve
         """
-        # check args dict first
-        if param_name in args and args[param_name]:
+        # check args dict first - if explicitly set in args, always use it regardless of value
+        if param_name in args:
             return args[param_name], 'args'
-        # check environment variables
+        
+        # check environment variables - here we apply the is_string logic
         env_val = get_env_value(param_name)
         if env_val:
             return env_val, 'env'
         return None, None
-    
-    def validate_nproc_per_node(value):
+ 
+    def validate_nproc_per_node(value: int | str) -> int | str:
         """Validate and normalize nproc_per_node."""
         if not isinstance(value, (int, str)):
             raise ValueError(f"nproc_per_node must be 'auto', 'gpu', or an integer, got type {type(value).__name__}")
@@ -112,26 +119,8 @@ def get_torchrun_params(args: dict):
             return 'gpu'
         else:
             raise ValueError("nproc_per_node='auto' requires CUDA GPUs, but none are available")
-        
-    # process nproc_per_node with validation
-    nproc_val, _ = get_param_value('nproc_per_node')
-    torchrun_args['nproc_per_node'] = validate_nproc_per_node(nproc_val) if nproc_val else 1
-    
-    # process integer parameters with defaults
-    int_params_with_defaults = {
-        'nnodes': 1,
-        'node_rank': 0,
-    }
-    for param, default in int_params_with_defaults.items():
-        value, _ = get_param_value(param)
-        torchrun_args[param] = int(value) if value else default
-    
-    
-    # process rdzv_id (can be str or int)
-    rdzv_id_val, _ = get_param_value('rdzv_id')
-    torchrun_args['rdzv_id'] = rdzv_id_val if rdzv_id_val else 0
-    
-    def get_param_reference(param_name, source):
+
+    def get_param_reference(param_name: str, source: str) -> str:
         """Format parameter reference based on source (args vs env)."""
         if source == 'args':
             return f"'{param_name}' (from args)"
@@ -148,6 +137,30 @@ def get_torchrun_params(args: dict):
             else:
                 return f"PET_{param_name.upper()}"
         return param_name
+
+    # process nproc_per_node with validation
+    nproc_val, _ = get_param_value('nproc_per_node')
+    torchrun_args['nproc_per_node'] = validate_nproc_per_node(nproc_val) if nproc_val is not None else 1
+
+    # simple int-only params
+    int_params_with_defaults = {
+        'nnodes': 1,
+        'node_rank': 0,
+    }
+    for param, default in int_params_with_defaults.items():
+        # we know the final values in this case must be integers, so any non-None value here
+        # should be castable to `int`.
+        value, _ = get_param_value(param)
+        torchrun_args[param] = int(value) if value is not None else default
+    
+    
+    # rdzv_id will be either a str or int; we just perform some cleanup before
+    # setting it in the final args dict.
+    rdzv_id_val, _ = get_param_value('rdzv_id')
+    if isinstance(rdzv_id_val, str):
+        rdzv_id_val = rdzv_id_val.strip()
+    torchrun_args['rdzv_id'] = rdzv_id_val if rdzv_id_val is not None else 0
+ 
     
     # process mutually exclusive string parameters with precedence handling
     master_addr_val, master_addr_source = get_param_value('master_addr')
@@ -195,13 +208,13 @@ def get_torchrun_params(args: dict):
         # any potential confusion
         torchrun_args['master_addr'] = master_addr_val
         master_port_val, master_port_source = get_param_value('master_port')
-        if master_port_val:
+        if master_port_val is not None:
             # validate env conflicts only when we're actually using master_port
             if master_port_source == 'env':
                 validate_env_conflict('master_port')
             torchrun_args['master_port'] = int(master_port_val)
 
-    if rdzv_endpoint_val:
+    elif rdzv_endpoint_val:
         torchrun_args['rdzv_endpoint'] = rdzv_endpoint_val
 
     return torchrun_args
