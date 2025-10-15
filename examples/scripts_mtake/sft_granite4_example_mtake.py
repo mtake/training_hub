@@ -30,8 +30,15 @@ from training_hub import sft
 
 # Derived from generic_7b_example in examples/notebooks/sft_comprehensive_tutorial.ipynb
 granite4_example = {
-    "model_name": "Granite-4.0-H-Small",
+    # @@@ahoaho XXX
+    "model_name": "Granite-4.0-H-Small",  # 4GPU ERR Connection closed by localRank 2
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
+    # "model_name": "Granite-4.0-H-Tiny",  # 2GPU OK
+    # "model_path": "ibm-granite/granite-4.0-h-tiny",  # HuggingFace model name or local path
+    # "model_name": "Granite-4.0-H-Micro",  # 2GPU OK
+    # "model_path": "ibm-granite/granite-4.0-h-micro",  # HuggingFace model name or local path
+    # "model_name": "Granite-4.0-Micro",  # 2GPU OK
+    # "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
     "example_max_tokens_per_gpu": 25000,
     "example_max_seq_len": 20000,
     "example_batch_size": 256,
@@ -142,8 +149,8 @@ def main():
     
     args = parser.parse_args()
 
-    if args.nproc_per_node < 8:
-        raise ValueError("NPROC_PER_NODE must be larger than or equal to 8")
+    # if args.nproc_per_node < 8:
+    #     raise ValueError("NPROC_PER_NODE must be larger than or equal to 8")
     
     # Granite-4.0-H-Small configuration
     print(f"🚀 SFT Training: {model_name}")
