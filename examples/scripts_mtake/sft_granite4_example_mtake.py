@@ -31,7 +31,7 @@ from training_hub import sft
 # Derived from generic_7b_example in examples/notebooks/sft_comprehensive_tutorial.ipynb
 granite4_example = {
     # @@@ahoaho XXX
-    "model_name": "Granite-4.0-H-Small",  # 4GPU ERR Connection closed by localRank 2
+    "model_name": "Granite-4.0-H-Small",  # 4GPU ERR, 8GPU ERR Connection closed by localRank N
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
     # "model_name": "Granite-4.0-H-Tiny",  # 2GPU OK
     # "model_path": "ibm-granite/granite-4.0-h-tiny",  # HuggingFace model name or local path
