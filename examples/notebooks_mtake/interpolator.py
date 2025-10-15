@@ -1,8 +1,19 @@
+"""
+Simple Model Interpolator
+
+The script takes two checkpoints of the same model and outputs a merged checkpoint with linear interpolation.
+
+Example usage:
+    python interpolator.py \\
+        --model-path ibm-granite/granite-3.3-8b-instruct \\
+        --trained-model-path /path/to/checkpoint
+"""
 # Standard
 import argparse
 
 # Third Party
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
 
 def interpolate_models(
@@ -10,14 +21,31 @@ def interpolate_models(
     trained_model_path: str,
     trained_model_weight: float = 0.5,
     output_model_path: str | None = None,
-    torch_dtype: str | None = "bfloat16",
+    torch_dtype: str | torch.dtype | None = "bfloat16",
 ) -> str:
     if output_model_path is None:
         output_model_path = f"{trained_model_path}_interp"
 
-    model_kwargs: dict[str, any] = {}
-    if torch_dtype is not None and torch_dtype != "auto":
-        model_kwargs["torch_dtype"] = torch_dtype
+    if not (0.0 <= trained_model_weight <= 1.0):
+        raise ValueError(f"trained_model_weight must be in [0,1], got {trained_model_weight}")
+
+    model_kwargs = {}
+    if torch_dtype is not None:
+        if isinstance(torch_dtype, str):
+            _torch_dtype = torch_dtype.lower()
+            if _torch_dtype == "auto":
+                model_kwargs["torch_dtype"] = "auto"
+            else:
+                _map = {
+                    "bfloat16": torch.bfloat16, "bf16": torch.bfloat16,
+                    "float16": torch.float16, "fp16": torch.float16,
+                    "float32": torch.float32, "fp32": torch.float32,
+                }
+                if _torch_dtype not in _map:
+                    raise ValueError(f"Unsupported --torch-dtype: {torch_dtype}")
+                model_kwargs["torch_dtype"] = _map[_torch_dtype]
+        else:
+            model_kwargs["torch_dtype"] = torch_dtype
 
     # load original model
     model = AutoModelForCausalLM.from_pretrained(
@@ -53,34 +81,34 @@ def parse_arguments():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "--model_path",
+        "--model-path",
         type=str,
         required=True,
-        help="path to the original model",
+        help="Path to the original model",
     )
     parser.add_argument(
-        "--trained_model_path",
+        "--trained-model-path",
         type=str,
         required=True,
-        help="path to the trained model",
+        help="Path to the trained model",
     )
     parser.add_argument(
-        "--trained_model_weight",
+        "--trained-model-weight",
         type=float,
         default=0.5,
-        help="weight for the trained model",
+        help="Weight for the trained model",
     )
     parser.add_argument(
-        "--output_model_path",
+        "--output-model-path",
         type=str,
         default=None,
-        help="path to the output model",
+        help="Path to the output model",
     )
     parser.add_argument(
-        "--torch_dtype",
+        "--torch-dtype",
         type=str,
         default="bfloat16",
-        help="torch dtype",
+        help="Torch dtype",
     )
     args = parser.parse_args()
     return args
