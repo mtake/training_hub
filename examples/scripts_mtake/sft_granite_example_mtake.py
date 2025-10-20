@@ -31,6 +31,7 @@ from training_hub import sft
 # Derived from generic_7b_example in examples/notebooks/sft_comprehensive_tutorial.ipynb
 granite_example = {
     "model_name": "Granite 3.3 8B Instruct",
+    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
     "example_max_tokens_per_gpu": 25000,
     "example_max_seq_len": 20000,
@@ -42,6 +43,7 @@ granite_example = {
 selected_example = granite_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
+min_nproc_per_node = selected_example['min_nproc_per_node']
 default_model_path = selected_example['model_path']
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
@@ -142,8 +144,8 @@ def main():
     
     args = parser.parse_args()
 
-    if args.nproc_per_node < 4:
-        raise ValueError("NPROC_PER_NODE must be larger than or equal to 4")
+    if args.nproc_per_node < min_nproc_per_node:
+        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
     
     # Granite 3.3 8B Instruct configuration
     print(f"🚀 SFT Training: {model_name}")

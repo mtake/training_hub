@@ -34,16 +34,7 @@ from training_hub import osft
 # =============================================================================
 
 # Derived from generic_7b_example in examples/notebooks/osft_comprehensive_tutorial.ipynb
-granite4_example = {
-    # @@@ahoaho XXX
-    "model_name": "Granite-4.0-H-Small",  # 4GPU ERR Connection closed by localRank N
-    "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
-    # "model_name": "Granite-4.0-H-Tiny",  # 2GPU OK
-    # "model_path": "ibm-granite/granite-4.0-h-tiny",  # HuggingFace model name or local path
-    # "model_name": "Granite-4.0-H-Micro",  # 2GPU OK
-    # "model_path": "ibm-granite/granite-4.0-h-micro",  # HuggingFace model name or local path
-    # "model_name": "Granite-4.0-Micro",  # 2GPU OK
-    # "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
+granite4_example_template = {
     "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
     "example_max_tokens_per_gpu": 10000,
     "example_max_seq_len": 4096,
@@ -52,9 +43,35 @@ granite4_example = {
     "notes": "Good baseline for most 7B instruction-tuned models",
 }
 
-selected_example = granite4_example  # Change this to your preferred example
+# granite4hs_example = {
+#     **granite4_example_template,
+#     "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
+#     "min_nproc_per_node": 4,
+#     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
+# }
+granite4ht_example = {
+    **granite4_example_template,
+    "model_name": "Granite-4.0-H-Tiny",
+    "min_nproc_per_node": 2,
+    "model_path": "ibm-granite/granite-4.0-h-tiny",  # HuggingFace model name or local path
+}
+granite4hm_example = {
+    **granite4_example_template,
+    "model_name": "Granite-4.0-H-Micro",
+    "min_nproc_per_node": 2,
+    "model_path": "ibm-granite/granite-4.0-h-micro",  # HuggingFace model name or local path
+}
+granite4m_example = {
+    **granite4_example_template,
+    "model_name": "Granite-4.0-Micro",
+    "min_nproc_per_node": 2,
+    "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
+}
+
+selected_example = granite4ht_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
+min_nproc_per_node = selected_example['min_nproc_per_node']
 default_model_path = selected_example['model_path']
 default_unfreeze_rank_ratio = selected_example["example_unfreeze_rank_ratio"]
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
@@ -160,8 +177,8 @@ def main():
     
     args = parser.parse_args()
     
-    # if args.nproc_per_node < 8:
-    #     raise ValueError("NPROC_PER_NODE must be larger than or equal to 8")
+    if args.nproc_per_node < min_nproc_per_node:
+        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
     
     # Granite-4.0-H-Small OSFT configuration
     print(f"🚀 OSFT Training: {model_name}")
