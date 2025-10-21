@@ -37,12 +37,12 @@ granite4_example_template = {
     "notes": "Good baseline for most 7B instruction-tuned models",
 }
 
-# granite4hs_example = {
-#     **granite4_example_template,
-#     "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
-#     "min_nproc_per_node": 4,
-#     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
-# }
+granite4hs_example = {
+    **granite4_example_template,
+    "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
+    "min_nproc_per_node": 4,
+    "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
+}
 granite4ht_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Tiny",
@@ -62,7 +62,9 @@ granite4m_example = {
     "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
 }
 
-selected_example = granite4ht_example  # Change this to your preferred example
+# @@@ahoaho XXX
+# selected_example = granite4ht_example  # Change this to your preferred example
+selected_example = granite4hs_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
 min_nproc_per_node = selected_example['min_nproc_per_node']
@@ -166,8 +168,9 @@ def main():
     
     args = parser.parse_args()
 
-    if args.nproc_per_node < min_nproc_per_node:
-        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
+    # @@@ahoaho XXX
+    # if args.nproc_per_node < min_nproc_per_node:
+    #     raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
     
     # Granite-4.0-H-Small configuration
     print(f"🚀 SFT Training: {model_name}")
@@ -215,7 +218,12 @@ def main():
             nnodes=1,
             node_rank=0,
             rdzv_id=102,
-            rdzv_endpoint="127.0.0.1:29500",
+            # @@@ahoaho XXX
+            # rdzv_endpoint="127.0.0.1:29500",
+            rdzv_endpoint="127.0.0.1:29502",
+            # @@@ahoaho XXX
+            # disable_flash_attn=True,
+            # device_map="auto",
         )
         
         end_time = time.time()
