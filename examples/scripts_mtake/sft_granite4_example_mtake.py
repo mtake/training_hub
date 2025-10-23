@@ -24,7 +24,8 @@ import torch
 from training_hub import sft
 
 # @@@ahoaho XXX
-from instructlab.training import DistributedBackend, FSDPOptions, ShardingStrategies
+# from instructlab.training import DistributedBackend, FSDPOptions, ShardingStrategies
+from instructlab.training import FSDPOptions
 
 # =============================================================================
 # MODEL CONFIGURATION EXAMPLE
@@ -36,6 +37,8 @@ granite4_example_template = {
     "example_max_seq_len": 20000,
     "example_batch_size": 256,
     "example_learning_rate": 2e-5,
+    # @@@ahoaho XXX
+    "kwargs": {},
     "notes": "Good baseline for most 7B instruction-tuned models",
 }
 
@@ -43,6 +46,10 @@ granite4hs_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
     "min_nproc_per_node": 4,
+    # @@@ahoaho XXX
+    "kwargs": {
+        "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    },
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
 }
 granite4ht_example = {
@@ -70,6 +77,8 @@ selected_example = granite4hs_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
 min_nproc_per_node = selected_example['min_nproc_per_node']
+# @@@ahoaho XXX
+kwargs = selected_example['kwargs']
 default_model_path = selected_example['model_path']
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
@@ -229,8 +238,9 @@ def main():
             # distributed_backend=DistributedBackend.FSDP,  # default is DistributedBackend.FSDP
             # fsdp_options=FSDPOptions(
             #     cpu_offload_params=True,  # default is False
-            #     sharding_strategy=ShardingStrategies.FULL_SHARD,  # default is ShardingStrategies.HYBRID_SHARD
+            #     # sharding_strategy=ShardingStrategies.HYBRID_SHARD,  # default is ShardingStrategies.HYBRID_SHARD
             # ),
+            **kwargs
         )
         
         end_time = time.time()
