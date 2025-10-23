@@ -23,6 +23,8 @@ import torch
 
 from training_hub import sft
 
+# @@@ahoaho XXX
+from instructlab.training import DistributedBackend, FSDPOptions, ShardingStrategies
 
 # =============================================================================
 # MODEL CONFIGURATION EXAMPLE
@@ -221,9 +223,14 @@ def main():
             # @@@ahoaho XXX
             # rdzv_endpoint="127.0.0.1:29500",
             rdzv_endpoint="127.0.0.1:29502",
+            
             # @@@ahoaho XXX
-            # disable_flash_attn=True,
-            # device_map="auto",
+            # Distributed backend
+            # distributed_backend=DistributedBackend.FSDP,  # default is DistributedBackend.FSDP
+            # fsdp_options=FSDPOptions(
+            #     cpu_offload_params=True,  # default is False
+            #     sharding_strategy=ShardingStrategies.FULL_SHARD,  # default is ShardingStrategies.HYBRID_SHARD
+            # ),
         )
         
         end_time = time.time()
