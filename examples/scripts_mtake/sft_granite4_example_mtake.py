@@ -24,7 +24,6 @@ import torch
 from training_hub import sft
 
 # @@@ahoaho XXX
-# from instructlab.training import DistributedBackend, FSDPOptions, ShardingStrategies
 from instructlab.training import FSDPOptions
 
 # =============================================================================
@@ -45,30 +44,36 @@ granite4_example_template = {
 granite4hs_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
-    "min_nproc_per_node": 4,
+    "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
+    "min_nproc_per_node": 8,
     # @@@ahoaho XXX
+    # Suggested by Mustafa
+    "example_max_tokens_per_gpu": 1000,
+    "example_max_seq_len": 150,
+    "example_batch_size": 128,
+    "example_learning_rate": 2e-5,
     "kwargs": {
+        # "disable_flash_attn": True,
         "fsdp_options": FSDPOptions(cpu_offload_params=True),
     },
-    "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
 }
 granite4ht_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Tiny",
-    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-4.0-h-tiny",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
 }
 granite4hm_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Micro",
-    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-4.0-h-micro",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
 }
 granite4m_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-Micro",
-    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
 }
 
 # @@@ahoaho XXX
@@ -76,14 +81,14 @@ granite4m_example = {
 selected_example = granite4hs_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
-min_nproc_per_node = selected_example['min_nproc_per_node']
-# @@@ahoaho XXX
-kwargs = selected_example['kwargs']
 default_model_path = selected_example['model_path']
+min_nproc_per_node = selected_example['min_nproc_per_node']
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
 default_learning_rate = selected_example['example_learning_rate']
+# @@@ahoaho XXX
+kwargs = selected_example['kwargs']
 default_num_epochs = 3
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
 default_model_weight = 0.5
@@ -234,12 +239,7 @@ def main():
             rdzv_endpoint="127.0.0.1:29502",
             
             # @@@ahoaho XXX
-            # Distributed backend
-            # distributed_backend=DistributedBackend.FSDP,  # default is DistributedBackend.FSDP
-            # fsdp_options=FSDPOptions(
-            #     cpu_offload_params=True,  # default is False
-            #     # sharding_strategy=ShardingStrategies.HYBRID_SHARD,  # default is ShardingStrategies.HYBRID_SHARD
-            # ),
+            # Additional parameters to the backend
             **kwargs
         )
         
