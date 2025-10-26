@@ -22,6 +22,7 @@ ENV="PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True ${ENV}"  # deprecated
 ENV="PYTORCH_ALLOC_CONF=expandable_segments:True ${ENV}"
 ENV="NCCL_DEBUG=INFO ${ENV}"
 
+if false; then
 # @@@ahoaho XXX
 ENV="TORCH_CPP_LOG_LEVEL=INFO ${ENV}"
 ENV="TORCH_DISTRIBUTED_DEBUG=DETAIL ${ENV}"
@@ -35,6 +36,8 @@ ENV="TORCH_NCCL_ASYNC_ERROR_HANDLING=1 ${ENV}"
 #ENV="NCCL_P2P_DISABLE=1 ${ENV}"
 #ENV="NCCL_SHM_DISABLE=1 ${ENV}"
 #ENV="NCCL_IB_DISABLE=1 ${ENV}"
+fi
+
 cmd="${ENV}python ${BASENAME}.py"
 echo "$cmd" | tee -a ${LOGFILE}
 eval "$cmd" 2>&1 | tee -a ${LOGFILE}
