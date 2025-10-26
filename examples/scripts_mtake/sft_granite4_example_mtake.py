@@ -127,8 +127,9 @@ full_experiment_name = f"{experiment_name}{_data_name}_{timestamp}"
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
 default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save checkpoints
 
-# data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
-data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
+# @@@ahoaho XXX
+data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
+# data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
 # Copied from examples/scripts/osft_continual_learning_example.py
 def find_most_recent_checkpoint(output_dir):
