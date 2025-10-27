@@ -21,10 +21,10 @@ from datetime import datetime
 import argparse
 import torch
 
-from training_hub import sft
-
 # @@@ahoaho XXX
 from instructlab.training import FSDPOptions
+from training_hub import sft
+
 
 # =============================================================================
 # MODEL CONFIGURATION EXAMPLE
@@ -36,8 +36,6 @@ granite4_example_template = {
     "example_max_seq_len": 20000,
     "example_batch_size": 256,
     "example_learning_rate": 2e-5,
-    # @@@ahoaho XXX
-    "kwargs": {},
     "notes": "Good baseline for most 7B instruction-tuned models",
 }
 
@@ -88,7 +86,7 @@ default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
 default_learning_rate = selected_example['example_learning_rate']
 # @@@ahoaho XXX
-kwargs = selected_example['kwargs']
+kwargs = selected_example.get('kwargs', {})
 default_num_epochs = 3
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
 default_model_weight = 0.5
