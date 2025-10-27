@@ -7,9 +7,11 @@ result = sft(
     model_path="ibm-granite/granite-4.0-h-small",
     # @@@ahoaho XXX
     # data_path="/home/lab/meyceoz/testing-train-hub/training_hub/examples/debug-dataset.jsonl",
+    # ckpt_output_dir="granite-custom-ckpt",
+    # data_output_dir="data_output",
     data_path="messages_data_teigaku-genzei-ibm-v6.jsonl",
-    ckpt_output_dir="granite-custom-ckpt",
-    data_output_dir="data_output",
+    ckpt_output_dir="experiments-mustafa",
+    data_output_dir="data-mustafa",
     save_samples=0,
     num_epochs=2,
     learning_rate=2e-5,
