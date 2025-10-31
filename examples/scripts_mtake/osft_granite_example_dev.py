@@ -37,6 +37,7 @@ from training_hub import osft
 granite_example = {
     "model_name": "Granite 3.3 8B Instruct",
     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
     "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
     "example_max_tokens_per_gpu": 10000,
     "example_max_seq_len": 4096,
@@ -49,6 +50,7 @@ selected_example = granite_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
+min_nproc_per_node = selected_example['min_nproc_per_node']
 default_unfreeze_rank_ratio = selected_example["example_unfreeze_rank_ratio"]
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
@@ -67,8 +69,8 @@ experiment_name = "osft_granite_example"
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 full_experiment_name = f"{experiment_name}_{timestamp}"
 
-# data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
-data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
+data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
+# data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
 
 def find_most_recent_checkpoint(output_dir):
@@ -130,8 +132,8 @@ def main():
     
     args = parser.parse_args()
     
-    if args.nproc_per_node < 4:
-        raise ValueError("NPROC_PER_NODE must be larger than or equal to 4")
+    if args.nproc_per_node < min_nproc_per_node:
+        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
     
     # Granite 3.3 8B Instruct OSFT configuration
     print(f"🚀 OSFT Training: {model_name}")

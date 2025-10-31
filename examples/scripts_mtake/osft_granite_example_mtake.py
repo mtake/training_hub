@@ -36,8 +36,8 @@ from training_hub import osft
 # Derived from generic_7b_example in examples/notebooks/osft_comprehensive_tutorial.ipynb
 granite_example = {
     "model_name": "Granite 3.3 8B Instruct",
-    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-3.3-8b-instruct",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
     "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
     "example_max_tokens_per_gpu": 10000,
     "example_max_seq_len": 4096,
@@ -49,8 +49,8 @@ granite_example = {
 selected_example = granite_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
-min_nproc_per_node = selected_example['min_nproc_per_node']
 default_model_path = selected_example['model_path']
+min_nproc_per_node = selected_example['min_nproc_per_node']
 default_unfreeze_rank_ratio = selected_example["example_unfreeze_rank_ratio"]
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
@@ -94,8 +94,8 @@ full_experiment_name = f"{experiment_name}{_data_name}_{timestamp}"
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
 default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save checkpoints
 
-# data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
-data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
+data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
+# data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
 
 def find_most_recent_checkpoint(output_dir):

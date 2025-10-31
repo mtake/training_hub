@@ -26,6 +26,7 @@ import argparse
 import glob
 import torch
 
+from instructlab.training import FSDPOptions
 from training_hub import osft
 
 
@@ -43,41 +44,52 @@ granite4_example_template = {
     "notes": "Good baseline for most 7B instruction-tuned models",
 }
 
-# granite4hs_example = {
-#     **granite4_example_template,
-#     "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
-#     "min_nproc_per_node": 4,
-#     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
-# }
+granite4hs_example = {
+    **granite4_example_template,
+    "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
+    "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
+    "min_nproc_per_node": 8,
+    # @@@ahoaho XXX
+    # Suggested by Mustafa
+    "example_max_tokens_per_gpu": 1000,
+    "example_max_seq_len": 150,
+    "example_batch_size": 128,
+    "example_learning_rate": 2e-5,
+    "kwargs": {
+        # "disable_flash_attn": True,
+        "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    },
+}
 granite4ht_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Tiny",
-    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-4.0-h-tiny",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
 }
 granite4hm_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Micro",
-    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-4.0-h-micro",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
 }
 granite4m_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-Micro",
-    "min_nproc_per_node": 2,
     "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
+    "min_nproc_per_node": 2,
 }
 
 selected_example = granite4ht_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
-min_nproc_per_node = selected_example['min_nproc_per_node']
 default_model_path = selected_example['model_path']
+min_nproc_per_node = selected_example['min_nproc_per_node']
 default_unfreeze_rank_ratio = selected_example["example_unfreeze_rank_ratio"]
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
 default_learning_rate = selected_example['example_learning_rate']
+kwargs = selected_example.get('kwargs', {})
 default_num_epochs = 3
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
 default_model_weight = 0.5
@@ -116,8 +128,8 @@ full_experiment_name = f"{experiment_name}{_data_name}_{timestamp}"
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
 default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save checkpoints
 
-# data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
-data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
+data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
+# data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
 
 def find_most_recent_checkpoint(output_dir):
@@ -225,7 +237,7 @@ def main():
             unmask_messages=args.unmask_messages,
             
             # Optimization
-            use_liger=False,                     # Enable Liger kernels for efficiency. NOTE: liger-kernel 0.6.2 doesn't support granitemoehybrid
+            # use_liger=True,                     # Enable Liger kernels for efficiency
             seed=42,
             lr_scheduler='cosine',              # Cosine scheduler works well with OSFT
             
@@ -239,6 +251,9 @@ def main():
             node_rank=0,
             rdzv_id=102,
             rdzv_endpoint="127.0.0.1:29500",
+            
+            # Additional parameters to the backend
+            **kwargs
         )
         
         end_time = time.time()

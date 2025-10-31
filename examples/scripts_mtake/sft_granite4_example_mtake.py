@@ -21,7 +21,6 @@ from datetime import datetime
 import argparse
 import torch
 
-# @@@ahoaho XXX
 from instructlab.training import FSDPOptions
 from training_hub import sft
 
@@ -85,7 +84,6 @@ default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
 default_learning_rate = selected_example['example_learning_rate']
-# @@@ahoaho XXX
 kwargs = selected_example.get('kwargs', {})
 default_num_epochs = 3
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
@@ -125,7 +123,6 @@ full_experiment_name = f"{experiment_name}{_data_name}_{timestamp}"
 default_data_path = f"messages_data{_data_name}.jsonl"  # Path to training data in JSONL format
 default_ckpt_output_dir = f"experiments/{full_experiment_name}"  # Where to save checkpoints
 
-# @@@ahoaho XXX
 data_output_dir=f"data/{full_experiment_name}"  # Directory for processed data
 # data_output_dir=f"/dev/shm/data/{full_experiment_name}"  # Directory for processed data (RAM disk for speed)
 
@@ -183,9 +180,8 @@ def main():
     
     args = parser.parse_args()
 
-    # @@@ahoaho XXX
-    # if args.nproc_per_node < min_nproc_per_node:
-    #     raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
+    if args.nproc_per_node < min_nproc_per_node:
+        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
     
     # Granite-4.0-H-Small configuration
     print(f"🚀 SFT Training: {model_name}")
@@ -237,7 +233,6 @@ def main():
             # rdzv_endpoint="127.0.0.1:29500",
             rdzv_endpoint="127.0.0.1:29502",
             
-            # @@@ahoaho XXX
             # Additional parameters to the backend
             **kwargs
         )
