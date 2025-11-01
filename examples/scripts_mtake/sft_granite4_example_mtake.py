@@ -73,9 +73,10 @@ granite4m_example = {
     "min_nproc_per_node": 2,
 }
 
-# @@@ahoaho XXX
-# selected_example = granite4ht_example  # Change this to your preferred example
-selected_example = granite4hs_example  # Change this to your preferred example
+# selected_example = granite4hs_example  # Change this to your preferred example
+selected_example = granite4ht_example  # Change this to your preferred example
+# selected_example = granite4hm_example  # Change this to your preferred example
+# selected_example = granite4m_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
