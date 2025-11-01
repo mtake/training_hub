@@ -42,7 +42,7 @@ granite4hs_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
-    "min_nproc_per_node": 8,
+    "example_min_nproc_per_node": 8,
     # @@@ahoaho XXX
     # Suggested by Mustafa
     "example_max_tokens_per_gpu": 1000,
@@ -58,19 +58,19 @@ granite4ht_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Tiny",
     "model_path": "ibm-granite/granite-4.0-h-tiny",  # HuggingFace model name or local path
-    "min_nproc_per_node": 2,
+    "example_min_nproc_per_node": 2,
 }
 granite4hm_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-H-Micro",
     "model_path": "ibm-granite/granite-4.0-h-micro",  # HuggingFace model name or local path
-    "min_nproc_per_node": 2,
+    "example_min_nproc_per_node": 2,
 }
 granite4m_example = {
     **granite4_example_template,
     "model_name": "Granite-4.0-Micro",
     "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
-    "min_nproc_per_node": 2,
+    "example_min_nproc_per_node": 2,
 }
 
 # selected_example = granite4hs_example  # Change this to your preferred example
@@ -80,7 +80,7 @@ selected_example = granite4ht_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
-min_nproc_per_node = selected_example['min_nproc_per_node']
+example_min_nproc_per_node = selected_example['example_min_nproc_per_node']
 default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
 default_max_seq_len = selected_example['example_max_seq_len']
 default_batch_size = selected_example['example_batch_size']
@@ -181,8 +181,8 @@ def main():
     
     args = parser.parse_args()
 
-    if args.nproc_per_node < min_nproc_per_node:
-        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {min_nproc_per_node}")
+    if args.nproc_per_node < example_min_nproc_per_node:
+        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {example_min_nproc_per_node}")
     
     # Granite-4.0-H-Small configuration
     print(f"🚀 SFT Training: {model_name}")
