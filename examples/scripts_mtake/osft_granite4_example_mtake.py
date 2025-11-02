@@ -46,7 +46,7 @@ granite4_example_template = {
 
 granite4hs_example = {
     **granite4_example_template,
-    "model_name": "Granite-4.0-H-Small",  # FIXME 4GPU ERR, 8GPU ERR Connection closed by localRank N
+    "model_name": "Granite-4.0-H-Small",
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 8,
     # @@@ahoaho XXX
@@ -56,7 +56,6 @@ granite4hs_example = {
     "example_batch_size": 128,
     "example_learning_rate": 2e-5,
     "kwargs": {
-        # "disable_flash_attn": True,
         "fsdp_options": FSDPOptions(cpu_offload_params=True),
     },
 }
@@ -251,9 +250,9 @@ def main():
             # Single-node multi-GPU setup
             nproc_per_node=args.nproc_per_node,
             nnodes=1,
-            node_rank=0,
-            rdzv_id=102,
-            rdzv_endpoint="127.0.0.1:29500",
+            # node_rank=0,
+            # rdzv_id=102,
+            # rdzv_endpoint="127.0.0.1:29500",
             
             # Additional parameters to the backend
             **kwargs
