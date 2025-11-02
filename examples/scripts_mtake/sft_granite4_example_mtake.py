@@ -81,10 +81,10 @@ selected_example = granite4ht_example  # Change this to your preferred example
 model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
 example_min_nproc_per_node = selected_example['example_min_nproc_per_node']
-default_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
-default_max_seq_len = selected_example['example_max_seq_len']
-default_batch_size = selected_example['example_batch_size']
-default_learning_rate = selected_example['example_learning_rate']
+example_max_tokens_per_gpu = selected_example['example_max_tokens_per_gpu']
+example_max_seq_len = selected_example['example_max_seq_len']
+example_batch_size = selected_example['example_batch_size']
+example_learning_rate = selected_example['example_learning_rate']
 kwargs = selected_example.get('kwargs', {})
 default_num_epochs = 3
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
@@ -166,23 +166,23 @@ def main():
                        help=f'Model path or HuggingFace name (default: {default_model_path})')
     parser.add_argument('--num-epochs', type=int, default=default_num_epochs,
                        help=f'Number of training epochs (default: {default_num_epochs})')
-    parser.add_argument('--max-tokens-per-gpu', type=int, default=default_max_tokens_per_gpu,
-                       help=f'Max tokens per GPU (default: {default_max_tokens_per_gpu})')
     parser.add_argument('--nproc-per-node', type=int, default=default_nproc_per_node,
                        help=f'Number of GPUs (default: {default_nproc_per_node})')
-    parser.add_argument('--batch-size', type=int, default=default_batch_size,
-                       help=f'Effective batch size for training (default: {default_batch_size})')
-    parser.add_argument('--learning-rate', type=float, default=default_learning_rate,
-                       help=f'Learning rate for training (default: {default_learning_rate})')
-    parser.add_argument('--max-seq-len', type=int, default=default_max_seq_len,
-                       help=f'Max sequence length (default: {default_max_seq_len})')
+    parser.add_argument('--max-tokens-per-gpu', type=int, default=example_max_tokens_per_gpu,
+                       help=f'Max tokens per GPU (default: {example_max_tokens_per_gpu})')
+    parser.add_argument('--batch-size', type=int, default=example_batch_size,
+                       help=f'Effective batch size for training (default: {example_batch_size})')
+    parser.add_argument('--learning-rate', type=float, default=example_learning_rate,
+                       help=f'Learning rate for training (default: {example_learning_rate})')
+    parser.add_argument('--max-seq-len', type=int, default=example_max_seq_len,
+                       help=f'Max sequence length (default: {example_max_seq_len})')
     parser.add_argument('--model-weight', type=float, default=default_model_weight,
                        help=f'Weight for trained model for interpolation (0.0-1.0, default: {default_model_weight})')
     
     args = parser.parse_args()
-
+    
     if args.nproc_per_node < example_min_nproc_per_node:
-        raise ValueError(f"NPROC_PER_NODE must be larger than or equal to {example_min_nproc_per_node}")
+        print(f"💡 Try --nproc-per-node {example_min_nproc_per_node} or larger if you will see OOM errors")
     
     # Granite-4.0-H-Small configuration
     print(f"🚀 SFT Training: {model_name}")
