@@ -50,14 +50,19 @@ granite4hs_example = {
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 8,
     # @@@ahoaho XXX
-    # Suggested by Mustafa
-    "example_max_tokens_per_gpu": 1000,
-    "example_max_seq_len": 150,
-    "example_batch_size": 128,
-    "example_learning_rate": 2e-5,
+    # TODO with 8xA100, 1600MB
     "kwargs": {
         "fsdp_options": FSDPOptions(cpu_offload_params=True),
     },
+    # # TODO with 8xA100, 1600MB
+    # "example_unfreeze_rank_ratio": 0.25,  # Conservative for smaller model
+    # "example_max_tokens_per_gpu": 8192,
+    # "example_max_seq_len": 4096,
+    # "example_batch_size": 64,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
 }
 granite4ht_example = {
     **granite4_example_template,
@@ -78,8 +83,9 @@ granite4m_example = {
     "example_min_nproc_per_node": 2,
 }
 
-# selected_example = granite4hs_example  # Change this to your preferred example
-selected_example = granite4ht_example  # Change this to your preferred example
+# @@@ahoaho XXX
+selected_example = granite4hs_example  # Change this to your preferred example
+# selected_example = granite4ht_example  # Change this to your preferred example
 # selected_example = granite4hm_example  # Change this to your preferred example
 # selected_example = granite4m_example  # Change this to your preferred example
 
@@ -92,7 +98,9 @@ example_max_seq_len = selected_example['example_max_seq_len']
 example_batch_size = selected_example['example_batch_size']
 example_learning_rate = selected_example['example_learning_rate']
 kwargs = selected_example.get('kwargs', {})
-default_num_epochs = 3
+# @@@ahoaho XXX
+# default_num_epochs = 3
+default_num_epochs = 1
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
 default_model_weight = 0.5
 

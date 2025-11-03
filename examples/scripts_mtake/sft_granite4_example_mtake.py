@@ -52,7 +52,7 @@ granite4hs_example = {
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
-    # ERR with 8xA100, 1600MB, 3epoch, Transport not connected
+    # ERR with 8xA100, 1600MB, Transport not connected
     # "example_max_tokens_per_gpu": 25000,
     # "example_max_seq_len": 20000,
     # "example_batch_size": 256,
