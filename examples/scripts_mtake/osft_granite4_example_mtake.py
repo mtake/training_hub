@@ -77,9 +77,18 @@ granite4hs_example = {
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
+    # TODO with 8xA100, 1600MB, cudaoom
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 6144,
+    # "example_max_seq_len": 4096,
+    # "example_batch_size": 64,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
     # TODO with 8xA100, 1600MB
     "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
-    "example_max_tokens_per_gpu": 6144,
+    "example_max_tokens_per_gpu": 5000,
     "example_max_seq_len": 4096,
     "example_batch_size": 64,
     "example_learning_rate": 5e-6,
