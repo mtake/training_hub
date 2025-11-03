@@ -50,19 +50,24 @@ granite4hs_example = {
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 8,
     # @@@ahoaho XXX
-    # TODO with 8xA100, 1600MB
-    "kwargs": {
-        "fsdp_options": FSDPOptions(cpu_offload_params=True),
-    },
-    # # TODO with 8xA100, 1600MB
-    # "example_unfreeze_rank_ratio": 0.25,  # Conservative for smaller model
-    # "example_max_tokens_per_gpu": 8192,
+    # ERR with 8xA100, 1600MB, Transport endpoint is not connected
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 10000,
     # "example_max_seq_len": 4096,
-    # "example_batch_size": 64,
+    # "example_batch_size": 128,
     # "example_learning_rate": 5e-6,
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
+    # TODO with 8xA100, 1600MB
+    "example_unfreeze_rank_ratio": 0.25,  # Conservative for smaller model
+    "example_max_tokens_per_gpu": 8192,
+    "example_max_seq_len": 4096,
+    "example_batch_size": 64,
+    "example_learning_rate": 5e-6,
+    "kwargs": {
+        "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    },
 }
 granite4ht_example = {
     **granite4_example_template,
