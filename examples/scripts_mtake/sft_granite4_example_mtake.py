@@ -52,10 +52,18 @@ granite4hs_example = {
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
-    # TODO with 8xA100, 1600MB
+    # ERR with 8xA100, 1600MB, 3epoch, Transport not connected
+    # "example_max_tokens_per_gpu": 25000,
+    # "example_max_seq_len": 20000,
+    # "example_batch_size": 256,
+    # "example_learning_rate": 2e-5,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # WIP with 8xA100, 1600MB, 3epoch
     "example_max_tokens_per_gpu": 25000,
-    "example_max_seq_len": 20000,
-    "example_batch_size": 256,
+    "example_max_seq_len": 8192,
+    "example_batch_size": 128,
     "example_learning_rate": 2e-5,
     "kwargs": {
         "fsdp_options": FSDPOptions(cpu_offload_params=True),
@@ -80,8 +88,9 @@ granite4m_example = {
     "example_min_nproc_per_node": 2,
 }
 
-# selected_example = granite4hs_example  # Change this to your preferred example
-selected_example = granite4ht_example  # Change this to your preferred example
+# @@@ahoaho XXX
+selected_example = granite4hs_example  # Change this to your preferred example
+# selected_example = granite4ht_example  # Change this to your preferred example
 # selected_example = granite4hm_example  # Change this to your preferred example
 # selected_example = granite4m_example  # Change this to your preferred example
 
