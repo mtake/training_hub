@@ -68,9 +68,18 @@ granite4hs_example = {
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
+    # TODO with 8xA100, 1600MB, dead at Loading checkpoint shards 71%
+    # "example_unfreeze_rank_ratio": 0.25,  # Conservative for smaller model
+    # "example_max_tokens_per_gpu": 7000,
+    # "example_max_seq_len": 4096,
+    # "example_batch_size": 64,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
     # TODO with 8xA100, 1600MB
-    "example_unfreeze_rank_ratio": 0.25,  # Conservative for smaller model
-    "example_max_tokens_per_gpu": 7000,
+    "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    "example_max_tokens_per_gpu": 6144,
     "example_max_seq_len": 4096,
     "example_batch_size": 64,
     "example_learning_rate": 5e-6,
