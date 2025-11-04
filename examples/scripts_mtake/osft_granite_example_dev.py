@@ -133,7 +133,7 @@ def main():
     args = parser.parse_args()
     
     if args.nproc_per_node < example_min_nproc_per_node:
-        print(f"💡 Try --nproc-per-node {example_min_nproc_per_node} or larger if you will see OOM errors")
+        print(f"💡 Try --nproc-per-node {example_min_nproc_per_node} or larger if you see OOM errors")
     
     # Granite 3.3 8B Instruct OSFT configuration
     print(f"🚀 OSFT Training: {model_name}")
