@@ -49,48 +49,92 @@ granite4hs_example = {
     "model_name": "Granite-4.0-H-Small",
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 8,
-    # @@@ahoaho XXX
-    # ERR with 8xA100, 1600MB, Transport endpoint is not connected
+    # NOTE with 8x A100 gpus and 1800 MB memory, fails at Loading checkpoint shards: 79%
     # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
-    # "example_max_tokens_per_gpu": 10000,
-    # "example_max_seq_len": 4096,
-    # "example_batch_size": 128,
-    # "example_learning_rate": 5e-6,
-    # "kwargs": {
-    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
-    # },
-    # ERR with 8xA100, 1600MB, CUDA OOM
-    # "example_unfreeze_rank_ratio": 0.25,  # Conservative for smaller model
-    # "example_max_tokens_per_gpu": 8192,
-    # "example_max_seq_len": 4096,
+    # "example_max_tokens_per_gpu": 1000,
+    # "example_max_seq_len": 150,
     # "example_batch_size": 64,
     # "example_learning_rate": 5e-6,
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
-    # TODO with 8xA100, 1600MB, dead at Loading checkpoint shards 71%
-    # "example_unfreeze_rank_ratio": 0.25,  # Conservative for smaller model
-    # "example_max_tokens_per_gpu": 7000,
-    # "example_max_seq_len": 4096,
-    # "example_batch_size": 64,
-    # "example_learning_rate": 5e-6,
-    # "kwargs": {
-    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
-    # },
-    # TODO with 8xA100, 1600MB, cudaoom
+    # NOTE with 8x A100 gpus and 1800 MB memory, fails at Loading checkpoint shards: 86%
     # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
-    # "example_max_tokens_per_gpu": 6144,
-    # "example_max_seq_len": 4096,
-    # "example_batch_size": 64,
+    # "example_max_tokens_per_gpu": 512,
+    # "example_max_seq_len": 100,
+    # "example_batch_size": 32,
     # "example_learning_rate": 5e-6,
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
-    # TODO with 8xA100, 1600MB
+    # NOTE with 8x A100 gpus and 1800 MB memory, Error: name 'args' is not defined
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 256,
+    # "example_max_seq_len": 50,
+    # "example_batch_size": 16,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # NOTE with 8x A100 gpus and 1800 MB memory, Error: name 'args' is not defined
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 512,
+    # "example_max_seq_len": 50,
+    # "example_batch_size": 16,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # NOTE with 8x A100 gpus and 1800 MB memory, fails at Loading checkpoint shards: 29%
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 256,
+    # "example_max_seq_len": 100,
+    # "example_batch_size": 32,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # NOTE with 8x A100 gpus and 1800 MB memory, CUDA OOM
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 1000,
+    # "example_max_seq_len": 150,
+    # "example_batch_size": 8,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # NOTE with 8x A100 gpus and 1800 MB memory, CUDA OOM
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 1000,
+    # "example_max_seq_len": 150,
+    # "example_batch_size": 2,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # NOTE with 8x A100 gpus and 1800 MB memory, CUDA OOM
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 512,
+    # "example_max_seq_len": 150,
+    # "example_batch_size": 2,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # NOTE with 8x A100 gpus and 1800 MB memory, CUDA OOM
+    # "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
+    # "example_max_tokens_per_gpu": 512,
+    # "example_max_seq_len": 100,
+    # "example_batch_size": 1,
+    # "example_learning_rate": 5e-6,
+    # "kwargs": {
+    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    # },
+    # NOTE with 8x A100 gpus and 1800 MB memory, fails at Loading checkpoint shards: 7%
     "example_unfreeze_rank_ratio": 0.3,  # Balanced preservation vs adaptation
-    "example_max_tokens_per_gpu": 5000,
-    "example_max_seq_len": 4096,
-    "example_batch_size": 64,
+    "example_max_tokens_per_gpu": 256,
+    "example_max_seq_len": 100,
+    "example_batch_size": 1,
     "example_learning_rate": 5e-6,
     "kwargs": {
         "fsdp_options": FSDPOptions(cpu_offload_params=True),
@@ -115,9 +159,8 @@ granite4m_example = {
     "example_min_nproc_per_node": 2,
 }
 
-# @@@ahoaho XXX
-selected_example = granite4hs_example  # Change this to your preferred example
-# selected_example = granite4ht_example  # Change this to your preferred example
+# selected_example = granite4hs_example  # Change this to your preferred example. NOTE doesn't work
+selected_example = granite4ht_example  # Change this to your preferred example
 # selected_example = granite4hm_example  # Change this to your preferred example
 # selected_example = granite4m_example  # Change this to your preferred example
 
@@ -130,9 +173,7 @@ example_max_seq_len = selected_example['example_max_seq_len']
 example_batch_size = selected_example['example_batch_size']
 example_learning_rate = selected_example['example_learning_rate']
 kwargs = selected_example.get('kwargs', {})
-# @@@ahoaho XXX
-# default_num_epochs = 3
-default_num_epochs = 1
+default_num_epochs = 3
 default_nproc_per_node = torch.cuda.device_count() if torch.cuda.is_available() else 0
 default_model_weight = 0.5
 

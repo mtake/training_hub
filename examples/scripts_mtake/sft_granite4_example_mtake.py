@@ -60,7 +60,7 @@ granite4hs_example = {
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
-    # WIP with 8xA100, 1600MB, 3epoch
+    # OK with 8xA100, 1600MB, 3epoch, 16.6 hours
     "example_max_tokens_per_gpu": 25000,
     "example_max_seq_len": 8192,
     "example_batch_size": 128,
