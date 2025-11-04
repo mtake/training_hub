@@ -191,9 +191,9 @@ def main():
             # Single-node multi-GPU setup
             nproc_per_node=args.nproc_per_node,
             nnodes=1,
-            node_rank=0,
-            rdzv_id=102,
-            rdzv_endpoint="127.0.0.1:29500",
+            # node_rank=0,
+            # rdzv_id=102,
+            # rdzv_endpoint="127.0.0.1:29500",
         )
         
         end_time = time.time()

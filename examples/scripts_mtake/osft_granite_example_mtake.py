@@ -154,7 +154,7 @@ def main():
                        help=f'Weight for trained model for interpolation (0.0-1.0, default: {default_model_weight})')
     
     args = parser.parse_args()
-    
+
     if args.nproc_per_node < example_min_nproc_per_node:
         print(f"💡 Try --nproc-per-node {example_min_nproc_per_node} or larger if you see OOM errors")
     
@@ -214,9 +214,9 @@ def main():
             # Single-node multi-GPU setup
             nproc_per_node=args.nproc_per_node,
             nnodes=1,
-            node_rank=0,
-            rdzv_id=102,
-            rdzv_endpoint="127.0.0.1:29500",
+            # node_rank=0,
+            # rdzv_id=102,
+            # rdzv_endpoint="127.0.0.1:29500",
         )
         
         end_time = time.time()
