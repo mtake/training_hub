@@ -43,16 +43,7 @@ granite4hs_example = {
     "model_name": "Granite-4.0-H-Small",
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 8,
-    # @@@ahoaho XXX
-    # OK with 8xA100, 1200MB, 1epoch, 5.5hours
-    # "example_max_tokens_per_gpu": 1000,
-    # "example_max_seq_len": 150,
-    # "example_batch_size": 128,
-    # "example_learning_rate": 2e-5,
-    # "kwargs": {
-    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
-    # },
-    # ERR with 8xA100, 1600MB, Transport not connected
+    # NOTE with 8x A100 gpus and 1600 MB memory, fails with Transport not connected
     # "example_max_tokens_per_gpu": 25000,
     # "example_max_seq_len": 20000,
     # "example_batch_size": 256,
@@ -60,7 +51,7 @@ granite4hs_example = {
     # "kwargs": {
     #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
     # },
-    # OK with 8xA100, 1600MB, 3epoch, 16.6 hours
+    # OK with 8xA100 gpus and 1600 MB memory, 3epoch, 16.6 hours
     "example_max_tokens_per_gpu": 25000,
     "example_max_seq_len": 8192,
     "example_batch_size": 128,
@@ -88,7 +79,6 @@ granite4m_example = {
     "example_min_nproc_per_node": 2,
 }
 
-# @@@ahoaho XXX
 selected_example = granite4hs_example  # Change this to your preferred example
 # selected_example = granite4ht_example  # Change this to your preferred example
 # selected_example = granite4hm_example  # Change this to your preferred example
