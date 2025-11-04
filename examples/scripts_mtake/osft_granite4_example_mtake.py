@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-OSFT Training Example: Granite-4.0-H-Small
+OSFT Training Example: Granite 4.0
 
-This script demonstrates OSFT (Orthogonal Subspace Fine-Tuning) training with Granite-4.0-H-Small model
+This script demonstrates OSFT (Orthogonal Subspace Fine-Tuning) training with Granite 4.0 models
 using a single-node, multi-GPU setup with training_hub.
 
 OSFT allows continual training without catastrophic forgetting, making it ideal for:
@@ -275,7 +275,7 @@ def main():
     if args.nproc_per_node < example_min_nproc_per_node:
         print(f"💡 Try --nproc-per-node {example_min_nproc_per_node} or larger if you see OOM errors")
     
-    # Granite-4.0-H-Small OSFT configuration
+    # Granite 4.0 OSFT configuration
     print(f"🚀 OSFT Training: {model_name}")
     print("=" * 50)
     print(f"Model: {args.model_path}")
@@ -294,7 +294,7 @@ def main():
     print("    The model will adapt to new data while preserving existing capabilities")
     print()
     
-    # Training configuration optimized for Granite-4.0-H-Small with OSFT
+    # Training configuration optimized for Granite 4.0 with OSFT
     start_time = time.time()
     
     try:
@@ -307,7 +307,7 @@ def main():
             # OSFT-specific parameters
             unfreeze_rank_ratio=args.unfreeze_rank_ratio,  # Controls preservation vs adaptation
             
-            # Training parameters optimized for Granite-4.0-H-Small
+            # Training parameters optimized for Granite 4.0
             num_epochs=args.num_epochs,
             effective_batch_size=args.batch_size,            # Smaller batch for efficient model
             learning_rate=args.learning_rate,                # Very low LR for smaller but dense model

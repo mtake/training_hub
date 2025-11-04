@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SFT Training Example: Granite-4.0-H-Small
+SFT Training Example: Granite 4.0
 
-This script demonstrates SFT training with Granite-4.0-H-Small model
+This script demonstrates SFT training with Granite 4.0 models
 using a single-node, multi-GPU setup with training_hub.
 
 After the training, the script also creates a merged model with linear interpolation.
@@ -198,7 +198,7 @@ def main():
     if args.nproc_per_node < example_min_nproc_per_node:
         print(f"💡 Try --nproc-per-node {example_min_nproc_per_node} or larger if you see OOM errors")
     
-    # Granite-4.0-H-Small configuration
+    # Granite 4.0 configuration
     print(f"🚀 SFT Training: {model_name}")
     print("=" * 50)
     print(f"Model: {args.model_path}")
@@ -213,7 +213,7 @@ def main():
     print(f"Model weight: {args.model_weight}")
     print()
 
-    # Training configuration optimized for Granite-4.0-H-Small
+    # Training configuration optimized for Granite 4.0
     start_time = time.time()
     
     try:
@@ -223,7 +223,7 @@ def main():
             data_path=args.data_path,
             ckpt_output_dir=args.ckpt_output_dir,
             
-            # Training parameters optimized for Granite-4.0-H-Small
+            # Training parameters optimized for Granite 4.0
             num_epochs=args.num_epochs,
             effective_batch_size=args.batch_size,
             learning_rate=args.learning_rate,
