@@ -43,27 +43,8 @@ granite4hs_example = {
     "model_name": "Granite-4.0-H-Small",
     "model_path": "ibm-granite/granite-4.0-h-small",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 8,
-    # NOTE with 8x A100 gpus and 1600 MB memory, Fails with Transport not connected
-    # "example_max_tokens_per_gpu": 25000,
-    # "example_max_seq_len": 20000,
-    # "example_batch_size": 256,
-    # "example_learning_rate": 2e-5,
-    # "kwargs": {
-    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
-    # },
-    # OK with 8x A100 gpus and 1600 MB memory, Finished in 16.6 hours
-    # "example_max_tokens_per_gpu": 25000,
-    # "example_max_seq_len": 8192,
-    # "example_batch_size": 128,
-    # "example_learning_rate": 2e-5,
-    # "kwargs": {
-    #     "fsdp_options": FSDPOptions(cpu_offload_params=True),
-    # },
-    # WIP with 8x A100 gpus and 1800 MB memory
-    "example_max_tokens_per_gpu": 25000,
-    "example_max_seq_len": 20000,
+    # OK with 8x A100 gpus and 1800 MB memory, Finished in 17.8 hours
     "example_batch_size": 128,
-    "example_learning_rate": 2e-5,
     "kwargs": {
         "fsdp_options": FSDPOptions(cpu_offload_params=True),
     },
