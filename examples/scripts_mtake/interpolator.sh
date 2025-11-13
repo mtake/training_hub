@@ -20,7 +20,8 @@ echo "XXX DATETIME ${START_TIME_STR}" | tee -a ${LOGFILE}
 #TRAINED="experiments/sft_granite_example_granite-3.3-8b-instruct_teigaku-genzei-ibm-v6_20251005_080203/hf_format/samples_50253"
 #TRAINED="experiments/osft_granite_example_granite-3.3-8b-instruct_teigaku-genzei-ibm-v6_20251005_080626/hf_format/samples_50253.0"
 ORIG="ibm-granite/granite-4.0-h-small"
-TRAINED="experiments/sft_granite4_example_teigaku-genzei-ibm-v6_20251104_022912/hf_format/samples_50253"
+#TRAINED="experiments/sft_granite4_example_teigaku-genzei-ibm-v6_20251104_022912/hf_format/samples_50253"  # unfrozen router parameters
+TRAINED="experiments/sft_granite4_example_teigaku-genzei-ibm-v6_20251112_015524/hf_format/samples_50253"  # frozen router parameters
 
 MODEL_PATH="${ORIG}"
 TRAINED_MODEL_PATH="${TRAINED}"
