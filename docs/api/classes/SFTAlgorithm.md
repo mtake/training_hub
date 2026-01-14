@@ -101,6 +101,14 @@ Executes the supervised fine-tuning process.
 |-----------|------|---------|-------------|
 | `data_output_dir` | `str` | `None` | Directory for data processing outputs. |
 
+###### Pretraining Mode
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `is_pretraining` | `bool` | `False` | When `True`, enables pretraining mode for training on raw documents. |
+| `block_size` | `int` | `None` | Required when `is_pretraining=True`. Number of tokens per training block (recommend starting with 2048). |
+| `document_column_name` | `str` | `"document"` | Column containing raw documents when `is_pretraining=True`. |
+
 ###### Checkpointing
 
 | Parameter | Type | Default | Description |
@@ -200,6 +208,9 @@ This method is useful for discovering available configuration options programmat
     "data_output_dir": str,
     "save_samples": int,
     "warmup_steps": int,
+    "is_pretraining": bool,
+    "block_size": int,
+    "document_column_name": str,
     "checkpoint_at_epoch": bool,
     "accelerate_full_state_at_epoch": bool,
     "nproc_per_node": int,

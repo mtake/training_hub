@@ -102,6 +102,14 @@ Executes the OSFT training process.
 | `use_processed_dataset` | `bool` | Backend default | Whether the data at `data_path` is already preprocessed. Set to `True` to skip preprocessing. |
 | `unmask_messages` | `bool` | Backend default | If `True`, unmasks all messages during data processing (excluding system messages). |
 
+###### Pretraining Mode
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `is_pretraining` | `bool` | `False` | When `True`, enables pretraining mode for training on raw documents. |
+| `block_size` | `int` | `None` | Required when `is_pretraining=True`. Number of tokens per training block (recommend starting with 2048). |
+| `document_column_name` | `str` | `"document"` | Column containing raw documents when `is_pretraining=True`. |
+
 ###### OSFT-Specific Configuration
 
 | Parameter | Type | Default | Description |
@@ -206,6 +214,9 @@ Returns the optional parameters for OSFT.
     "data_output_dir": str,
     "use_processed_dataset": bool,
     "unmask_messages": bool,
+    "is_pretraining": bool,
+    "block_size": int,
+    "document_column_name": str,
     "target_patterns": list,
     "num_epochs": int,
     "warmup_steps": int,
