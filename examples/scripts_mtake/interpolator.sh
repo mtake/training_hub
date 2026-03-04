@@ -16,6 +16,11 @@ LOGFILE="${BASENAME}-${START_TIME_STR}-${HOSTNAME_S}.log"
 echo "XXX LOGFILE ${LOGFILE}" | tee -a ${LOGFILE}
 echo "XXX DATETIME ${START_TIME_STR}" | tee -a ${LOGFILE}
 
+VENV=../../.venv
+if [[ -d "${VENV}" ]]; then
+    source "${VENV}/bin/activate"
+fi
+
 #ORIG="ibm-granite/granite-3.3-8b-instruct"
 #TRAINED="experiments/sft_granite_example_granite-3.3-8b-instruct_teigaku-genzei-ibm-v6_20251005_080203/hf_format/samples_50253"
 #TRAINED="experiments/osft_granite_example_granite-3.3-8b-instruct_teigaku-genzei-ibm-v6_20251005_080626/hf_format/samples_50253.0"

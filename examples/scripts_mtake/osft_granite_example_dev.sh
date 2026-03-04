@@ -16,6 +16,11 @@ LOGFILE="${BASENAME}-${START_TIME_STR}-${HOSTNAME_S}.log"
 echo "XXX LOGFILE ${LOGFILE}" | tee -a ${LOGFILE}
 echo "XXX DATETIME ${START_TIME_STR}" | tee -a ${LOGFILE}
 
+VENV=../../.venv
+if [[ -d "${VENV}" ]]; then
+    source "${VENV}/bin/activate"
+fi
+
 _DATA_NAME=_test
 
 ENV=""
