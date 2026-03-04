@@ -135,6 +135,31 @@ estimate(training_method='osft',
 )
 ```
 
+### Training Loss Visualization
+
+training_hub includes a `plot_loss` utility for visualizing training loss curves after running SFT or OSFT training. This is useful for monitoring training progress, comparing different experiments, and identifying issues like overfitting.
+
+**Tutorials:**
+- [Plot Loss Example](notebooks/plot_loss_example.ipynb) - Interactive notebook demonstrating loss visualization features
+
+**Quick Example:**
+```python
+from training_hub import sft, plot_loss
+
+# After training
+sft(model_path="...", ckpt_output_dir="./checkpoints", ...)
+
+# Plot and save loss curve
+plot_loss("./checkpoints")
+
+# Compare multiple runs with EMA smoothing
+plot_loss(
+    ["./run1", "./run2", "./run3"],
+    labels=["baseline", "lr=1e-5", "lr=5e-6"],
+    ema=True
+)
+```
+
 ### Model Interpolation (Experimental / In-Development)
 
 training_hub has a utility for merging two checkpoints of the same model into one with linear interpolation.
@@ -152,6 +177,18 @@ python interpolator.py --model-path /path/to/base/model --trained-model-path /pa
 from interpolator import interpolate_models
 
 interpolate_models("/path/to/base/model", "/path/to/trained/checkpoint")
+```
+
+### Model Validation (Development / QA)
+
+Validates that model architectures can train successfully with SFT and OSFT by overfitting on a single sample.
+
+**Script:** [model_validation.py](../scripts/model_validation.py)
+
+```bash
+python scripts/model_validation.py --models llama --mode sft
+python scripts/model_validation.py --run-all --mode both --liger-variants
+python scripts/model_validation.py --list-models
 ```
 
 ## Getting Started
