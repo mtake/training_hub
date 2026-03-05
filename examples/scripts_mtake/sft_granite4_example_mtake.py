@@ -103,8 +103,8 @@ default_model_weight = 0.5
 # data_name = "ibm-newsroom-d5"
 # data_name = "ibm-newsroom-d5-x100"
 # data_name = "ibm-newsroom-en_d5"  # 699 samples
-# data_name = "jfe-technical-report_r5"  # 53030 samples (NOTE tracking example for clienteng)
-data_name = "enhanced-jfe-technical-report"  # 8782 samples (NOTE enhanced tracking example for clienteng)
+data_name = "jfe-technical-report_r5"  # 53030 samples (NOTE tracking example for clienteng)
+# data_name = "enhanced-jfe-technical-report"  # 8782 samples (NOTE enhanced tracking example for clienteng) WIP
 
 _data_name = f"_{data_name}" if data_name is not None and len(data_name) > 0 else ""
 
