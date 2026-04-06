@@ -67,11 +67,19 @@ granite4m_example = {
     "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 2,
 }
+granite418b_example = {
+    **granite4_example_template,
+    "model_name": "Granite-4.1-8B",
+    # "model_path": "ibm-granite/granite-4.1-8b",  # HuggingFace model name or local path
+    "model_path": "checkpoints/granite-4.1-8b",  # HuggingFace model name or local path
+    "example_min_nproc_per_node": 4,
+}
 
-selected_example = granite4hs_example  # Change this to your preferred example
+# selected_example = granite4hs_example  # Change this to your preferred example
 # selected_example = granite4ht_example  # Change this to your preferred example
 # selected_example = granite4hm_example  # Change this to your preferred example
 # selected_example = granite4m_example  # Change this to your preferred example
+selected_example = granite418b_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
