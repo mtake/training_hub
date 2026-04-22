@@ -67,11 +67,23 @@ granite4m_example = {
     "model_path": "ibm-granite/granite-4.0-micro",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 2,
 }
+# @@@ahoaho XXX
+granite4130b_example = {
+    **granite4_example_template,
+    "model_name": "Granite-4.1-30B",
+    # "model_path": "ibm-granite/granite-4.1-30b",  # HuggingFace model name or local path
+    "model_path": "checkpoints/granite-4.1-30b",  # HuggingFace model name or local path
+    "example_min_nproc_per_node": 8,
+    # WIP with 8x H100 gpus and 1900 MB memory, Finished in XX.X hours
+    "example_batch_size": 128,
+    "kwargs": {
+        "fsdp_options": FSDPOptions(cpu_offload_params=True),
+    },
+}
 granite418b_example = {
     **granite4_example_template,
     "model_name": "Granite-4.1-8B",
-    # "model_path": "ibm-granite/granite-4.1-8b",  # HuggingFace model name or local path
-    "model_path": "checkpoints/granite-4.1-8b",  # HuggingFace model name or local path
+    "model_path": "ibm-granite/granite-4.1-8b",  # HuggingFace model name or local path
     "example_min_nproc_per_node": 4,
 }
 
@@ -79,7 +91,9 @@ granite418b_example = {
 # selected_example = granite4ht_example  # Change this to your preferred example
 # selected_example = granite4hm_example  # Change this to your preferred example
 # selected_example = granite4m_example  # Change this to your preferred example
-selected_example = granite418b_example  # Change this to your preferred example
+# @@@ahoaho XXX
+selected_example = granite4130b_example  # Change this to your preferred example
+# selected_example = granite418b_example  # Change this to your preferred example
 
 model_name = selected_example['model_name']
 default_model_path = selected_example['model_path']
